@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
+import { LayoutWrapper } from "@/components/layout/LayoutWrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,7 +33,11 @@ export const metadata: Metadata = {
     title: "Elevatr - Career Success Tracker",
     description: "Track your career growth with structured sprints",
   },
-  viewport: "width=device-width, initial-scale=1",
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -48,7 +53,9 @@ export default function RootLayout({
         <ThemeProvider>
           <AuthProvider>
             <NotificationProvider>
-              {children}
+              <LayoutWrapper>
+                {children}
+              </LayoutWrapper>
             </NotificationProvider>
           </AuthProvider>
         </ThemeProvider>

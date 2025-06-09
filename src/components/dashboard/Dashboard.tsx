@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Header } from '@/components/layout/Header';
-import { Navigation } from '@/components/layout/Navigation';
 import { StatsOverview } from '@/components/dashboard/StatsOverview';
 import { ActiveSprint } from '@/components/dashboard/ActiveSprint';
 import { QuickActions } from '@/components/dashboard/QuickActions';
@@ -44,7 +42,6 @@ export function Dashboard() {
 
     loadDashboardData();
   }, [user]);
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -54,39 +51,32 @@ export function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <div className="flex">
-        <Navigation />
-        <main className="flex-1 p-6">
-          <div className="max-w-7xl mx-auto space-y-6">
-            {/* Welcome Section */}
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-foreground mb-2">
-                Welcome back, {user?.displayName?.split(' ')[0] || 'there'}! 👋
-              </h1>              <p className="text-muted-foreground">
-                Here&apos;s an overview of your career sprint progress
-              </p>
-            </div>
+    <div className="max-w-7xl mx-auto space-y-6">
+      {/* Welcome Section */}
+      <div className="mb-8">
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
+          Welcome back, {user?.displayName?.split(' ')[0] || 'there'}! 👋
+        </h1>
+        <p className="text-muted-foreground">
+          Here&apos;s an overview of your career sprint progress
+        </p>
+      </div>
 
-            {/* Stats Overview */}
-            <StatsOverview userProgress={userProgress} />
+      {/* Stats Overview */}
+      <StatsOverview userProgress={userProgress} />
 
-            {/* Main Content Grid */}
-            <div className="grid lg:grid-cols-3 gap-6">
-              {/* Left Column - Active Sprint & Quick Actions */}
-              <div className="lg:col-span-2 space-y-6">
-                <ActiveSprint sprint={activeSprint} />
-                <QuickActions />
-              </div>
+      {/* Main Content Grid */}
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Left Column - Active Sprint & Quick Actions */}
+        <div className="lg:col-span-2 space-y-6">
+          <ActiveSprint sprint={activeSprint} />
+          <QuickActions />
+        </div>
 
-              {/* Right Column - Recent Activity */}
-              <div>
-                <RecentActivity userId={user?.uid || ''} />
-              </div>
-            </div>
-          </div>
-        </main>
+        {/* Right Column - Recent Activity */}
+        <div>
+          <RecentActivity userId={user?.uid || ''} />
+        </div>
       </div>
     </div>
   );

@@ -15,6 +15,14 @@ import { Sprint, Task } from '@/types';
 import { getSprintsByUser, getTasksByUser } from '@/services/firebase';
 import { format, subDays, eachDayOfInterval, isAfter } from 'date-fns';
 
+// Utility function to safely convert Firebase Timestamp to Date
+const toDate = (timestamp: Date | any): Date => {
+  if (timestamp && typeof timestamp.toDate === 'function') {
+    return timestamp.toDate();
+  }
+  return timestamp instanceof Date ? timestamp : new Date(timestamp);
+};
+
 interface ProgressStats {
   totalSprints: number;
   completedSprints: number;
@@ -100,20 +108,17 @@ export default function ProgressPage() {
     const today = new Date();
     const weekAgo = subDays(today, 7);
     const monthAgo = subDays(today, 30);
-    
-    const tasksThisWeek = completedTasks.filter(t => 
-      t.completedAt && isAfter(new Date(t.completedAt), weekAgo)
+      const tasksThisWeek = completedTasks.filter(t => 
+      t.completedAt && isAfter(toDate(t.completedAt), weekAgo)
     ).length;
     
     const tasksThisMonth = completedTasks.filter(t => 
-      t.completedAt && isAfter(new Date(t.completedAt), monthAgo)
-    ).length;
-
-    // Simple streak calculation based on consecutive days with completed tasks
+      t.completedAt && isAfter(toDate(t.completedAt), monthAgo)
+    ).length;    // Simple streak calculation based on consecutive days with completed tasks
     const uniqueDays = new Set(
       completedTasks
         .filter(t => t.completedAt)
-        .map(t => format(new Date(t.completedAt!), 'yyyy-MM-dd'))
+        .map(t => format(toDate(t.completedAt!), 'yyyy-MM-dd'))
     );
     
     currentStreak = uniqueDays.size > 0 ? Math.min(uniqueDays.size, 7) : 0;
@@ -136,12 +141,10 @@ export default function ProgressPage() {
   const calculateDailyProgress = (tasks: Task[], days: number): DailyProgress[] => {
     const endDate = new Date();
     const startDate = subDays(endDate, days - 1);
-    const dateRange = eachDayOfInterval({ start: startDate, end: endDate });
-
-    return dateRange.map(date => {
+    const dateRange = eachDayOfInterval({ start: startDate, end: endDate });    return dateRange.map(date => {
       const dayTasks = tasks.filter(t => 
         t.completedAt && 
-        format(new Date(t.completedAt), 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
+        format(toDate(t.completedAt), 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
       );
       
       return {

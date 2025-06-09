@@ -16,10 +16,11 @@ export default function JournalPage() {
   const { user } = useAuth();
   const router = useRouter();
   const [activeSprint, setActiveSprint] = useState<Sprint | null>(null);
-  const [content, setContent] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [content, setContent] = useState('');  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -37,10 +38,18 @@ export default function JournalPage() {
           const existingEntry = userProgress?.journalEntries.find(
             entry => entry.dayId === dayId
           );
-          
-          if (existingEntry) {
+            if (existingEntry) {
             setContent(existingEntry.content);
-            setLastSaved(new Date(existingEntry.updatedAt));
+            // Handle both Date and Timestamp types
+            const updatedAt = existingEntry.updatedAt;
+            if (updatedAt instanceof Date) {
+              setLastSaved(updatedAt);
+            } else if (updatedAt && typeof updatedAt.toDate === 'function') {
+              // Firestore Timestamp
+              setLastSaved(updatedAt.toDate());
+            } else {
+              setLastSaved(new Date());
+            }
           }
         }
       } catch (error) {
@@ -52,12 +61,12 @@ export default function JournalPage() {
 
     loadData();
   }, [user, dayId]);
-
   const handleSave = async () => {
     if (!user || !activeSprint || !dayId) return;
 
     try {
       setSaving(true);
+      setSaveError(null);
       
       const journalEntry: JournalEntry = {
         id: `${activeSprint.id}-${dayId}-${Date.now()}`,
@@ -70,11 +79,33 @@ export default function JournalPage() {
 
       await updateJournalEntry(user.uid, activeSprint.id, journalEntry);
       setLastSaved(new Date());
+      setHasUnsavedChanges(false);
     } catch (error) {
       console.error('Error saving journal entry:', error);
+      setSaveError('Failed to save journal entry. Please try again.');
     } finally {
       setSaving(false);
     }
+  };
+
+  // Auto-save functionality
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
+
+    const autoSaveTimer = setTimeout(() => {
+      if (content.trim()) {
+        handleSave();
+      }
+    }, 5000); // Auto-save after 5 seconds of inactivity
+
+    return () => clearTimeout(autoSaveTimer);
+  }, [content, hasUnsavedChanges]);
+
+  // Handle content changes
+  const handleContentChange = (newContent: string) => {
+    setContent(newContent);
+    setHasUnsavedChanges(true);
+    setSaveError(null);
   };
 
   const prompts = [
@@ -113,32 +144,31 @@ export default function JournalPage() {
       </div>
     );
   }
-
   return (
-    <div className="container mx-auto px-6 py-8 max-w-4xl">
+    <div className="container mx-auto px-4 md:px-6 py-8 max-w-4xl">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-8">
-        <Button variant="ghost" size="icon" asChild>
+      <div className="flex flex-col md:flex-row items-start md:items-center gap-4 mb-8">
+        <Button variant="ghost" size="icon" asChild className="self-start">
           <Link href={`/sprint/${activeSprint.id}`}>
             <ArrowLeft className="h-5 w-5" />
           </Link>
         </Button>
         <div className="flex-1">
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <BookOpen className="h-8 w-8" />
+          <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
+            <BookOpen className="h-6 w-6 md:h-8 md:w-8" />
             Day {dayId} Journal
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-sm md:text-base">
             Reflect on your progress and insights from today
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-2 w-full md:w-auto">
           {lastSaved && (
-            <span className="text-sm text-muted-foreground">
+            <span className="text-xs md:text-sm text-muted-foreground">
               Last saved: {lastSaved.toLocaleTimeString()}
             </span>
           )}
-          <Button onClick={handleSave} disabled={saving}>
+          <Button onClick={handleSave} disabled={saving} className="w-full md:w-auto">
             {saving ? (
               <LoadingSpinner size="sm" />
             ) : (
@@ -160,16 +190,42 @@ export default function JournalPage() {
                 <Calendar className="h-5 w-5" />
                 Day {dayId} Reflection
               </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <textarea
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Start writing your reflection for today..."
-                className="w-full h-96 p-4 border border-input rounded-md bg-background text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-ring"
-              />
-              <div className="mt-4 text-sm text-muted-foreground">
-                {content.length} characters • {content.split(/\s+/).filter(word => word.length > 0).length} words
+            </CardHeader>            <CardContent>
+              <div className="space-y-4">
+                <textarea
+                  value={content}
+                  onChange={(e) => handleContentChange(e.target.value)}
+                  placeholder="Start writing your reflection for today..."
+                  className="w-full h-96 p-4 border border-input rounded-md bg-background text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+                
+                {/* Status indicators */}
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-4">
+                    {hasUnsavedChanges && (
+                      <span className="text-amber-600 dark:text-amber-400">
+                        Unsaved changes
+                      </span>
+                    )}
+                    {saving && (
+                      <span className="text-blue-600 dark:text-blue-400">
+                        Saving...
+                      </span>
+                    )}
+                    {lastSaved && !hasUnsavedChanges && (
+                      <span className="text-green-600 dark:text-green-400">
+                        Saved at {lastSaved.toLocaleTimeString()}
+                      </span>
+                    )}
+                    {saveError && (
+                      <span className="text-red-600 dark:text-red-400">
+                        {saveError}
+                      </span>
+                    )}
+                  </div>                  <div className="text-muted-foreground">
+                    {content.length} characters • {content.split(/\s+/).filter(word => word.length > 0).length} words
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -188,10 +244,9 @@ export default function JournalPage() {
                 </p>
                 {prompts.map((prompt, index) => (
                   <button
-                    key={index}
-                    onClick={() => {
+                    key={index}                    onClick={() => {
                       const newContent = content + (content ? '\n\n' : '') + prompt + '\n\n';
-                      setContent(newContent);
+                      handleContentChange(newContent);
                     }}
                     className="text-left w-full p-3 text-sm border border-input rounded-md hover:bg-accent transition-colors"
                   >

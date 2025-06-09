@@ -9,6 +9,14 @@ import { Clock, BookOpen, CheckCircle, XCircle, MoreHorizontal } from 'lucide-re
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
 
+// Utility function to safely convert Firebase Timestamp to Date
+const toDate = (timestamp: Date | any): Date => {
+  if (timestamp && typeof timestamp.toDate === 'function') {
+    return timestamp.toDate();
+  }
+  return timestamp instanceof Date ? timestamp : new Date(timestamp);
+};
+
 interface RecentActivityProps {
   userId: string;
 }
@@ -36,24 +44,22 @@ export function RecentActivity({ userId }: RecentActivityProps) {
         const [journalEntries, taskUpdates] = await Promise.all([
           getRecentJournalEntries(userId, 5),
           getRecentTaskUpdates(userId, 5),
-        ]);
-
-        const journalActivities: ActivityItem[] = journalEntries.map((entry: JournalEntry) => ({
+        ]);        const journalActivities: ActivityItem[] = journalEntries.map((entry: JournalEntry) => ({
           id: entry.id,
           type: 'journal',
           title: 'Journal Entry',
           description: entry.content.slice(0, 100) + (entry.content.length > 100 ? '...' : ''),
-          timestamp: entry.createdAt,
+          timestamp: toDate(entry.createdAt),
           icon: BookOpen,
           href: `/journal/${entry.id}`,
-        }));        const taskActivities: ActivityItem[] = taskUpdates
+        }));const taskActivities: ActivityItem[] = taskUpdates
           .filter((task: TaskStatus) => task.id && task.title) // Only include tasks with id and title
           .map((task: TaskStatus) => ({
             id: task.id!,
             type: 'task',
             title: task.completed ? 'Task Completed' : 'Task Updated',
             description: task.title!,
-            timestamp: task.updatedAt,
+            timestamp: toDate(task.updatedAt),
             icon: task.completed ? CheckCircle : XCircle,
             href: `/tasks/${task.id}`,
           }));

@@ -30,18 +30,17 @@ export function Header() {
   ];
 
   const currentThemeIcon = themeOptions.find(option => option.value === theme)?.icon || Monitor;
-
   return (
     <header className="border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
-      <div className="flex h-16 items-center px-6">
+      <div className="flex h-16 items-center px-4 md:px-6">
         {/* Logo */}
         <div className="flex items-center space-x-4">
           <h1 className="text-xl font-bold text-foreground">Elevatr</h1>
         </div>
 
-        {/* Search Bar */}
-        <div className="flex-1 max-w-md mx-8">
-          <div className="relative">
+        {/* Search Bar - Hidden on mobile */}
+        <div className="hidden md:flex flex-1 max-w-md mx-8">
+          <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input
               type="search"
@@ -51,10 +50,16 @@ export function Header() {
           </div>
         </div>
 
-        {/* Right Side Actions */}
-        <div className="flex items-center space-x-4">
-          {/* Notifications */}
-          <Button variant="ghost" size="icon" className="relative">
+        {/* Spacer for mobile */}
+        <div className="flex-1 md:hidden"></div>        {/* Right Side Actions */}
+        <div className="flex items-center space-x-2 md:space-x-4">
+          {/* Search Button - Mobile only */}
+          <Button variant="ghost" size="icon" className="md:hidden">
+            <Search className="h-5 w-5" />
+          </Button>
+
+          {/* Notifications - Hidden on mobile */}
+          <Button variant="ghost" size="icon" className="relative hidden sm:flex">
             <Bell className="h-5 w-5" />
             <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-xs text-destructive-foreground flex items-center justify-center">
               3
@@ -62,7 +67,7 @@ export function Header() {
           </Button>
 
           {/* Theme Toggle */}
-          <div className="relative">            <Button
+          <div className="relative"><Button
               variant="ghost"
               size="icon"
               onClick={() => setShowThemeMenu(!showThemeMenu)}
@@ -91,13 +96,11 @@ export function Header() {
                 </div>
               </Card>
             )}
-          </div>
-
-          {/* User Menu */}
+          </div>          {/* User Menu */}
           <div className="relative">
             <Button
               variant="ghost"
-              className="flex items-center space-x-2 px-3"
+              className="flex items-center space-x-2 px-2 md:px-3"
               onClick={() => setShowUserMenu(!showUserMenu)}
             >
               {user?.photoURL ? (

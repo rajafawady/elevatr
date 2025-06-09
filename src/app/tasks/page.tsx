@@ -17,6 +17,17 @@ export default function TasksPage() {
   const [loading, setLoading] = useState(true);  const [filter, setFilter] = useState<'all' | 'active' | 'completed' | 'blocked'>('all');
   const [priorityFilter, setPriorityFilter] = useState<TaskPriority | 'all'>('all');
 
+  // Helper function to convert Date or Timestamp to Date
+  const toDate = (dateValue: Date | any): Date => {
+    if (dateValue instanceof Date) {
+      return dateValue;
+    }
+    if (dateValue && typeof dateValue.toDate === 'function') {
+      return dateValue.toDate();
+    }
+    return new Date(dateValue);
+  };
+
   useEffect(() => {
     if (user) {
       loadTasks();
@@ -62,22 +73,21 @@ export default function TasksPage() {
     const statusMatch = filter === 'all' || task.status === filter;
     const priorityMatch = priorityFilter === 'all' || task.priority === priorityFilter;
     return statusMatch && priorityMatch;
-  });
-  const getStatusIcon = (status: 'active' | 'completed' | 'blocked') => {
+  });  const getStatusIcon = (status: 'active' | 'completed' | 'blocked') => {
     switch (status) {
-      case 'completed': return <CheckCircle className="w-5 h-5 text-green-500" />;
-      case 'active': return <Clock className="w-5 h-5 text-blue-500" />;
-      case 'blocked': return <AlertCircle className="w-5 h-5 text-red-500" />;
-      default: return <Clock className="w-5 h-5 text-gray-500" />;
+      case 'completed': return <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />;
+      case 'active': return <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />;
+      case 'blocked': return <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />;
+      default: return <Clock className="w-5 h-5 text-muted-foreground" />;
     }
   };
 
   const getPriorityColor = (priority: TaskPriority) => {
     switch (priority) {
-      case 'high': return 'bg-red-100 text-red-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'low': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'high': return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300';
+      case 'medium': return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300';
+      case 'low': return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -88,14 +98,13 @@ export default function TasksPage() {
       </div>
     );
   }
-
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-6xl mx-auto p-6">
-        <div className="flex justify-between items-center mb-8">
+    <div className="min-h-screen bg-background">
+      <div className="max-w-6xl mx-auto p-4 md:p-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Tasks</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">Tasks</h1>
+            <p className="text-muted-foreground mt-1">
               Manage your career development tasks
             </p>
           </div>
@@ -224,14 +233,13 @@ export default function TasksPage() {
                       <div className="flex items-center gap-3 mt-2">
                         <Badge className={getPriorityColor(task.priority)}>
                           {task.priority}
-                        </Badge>
-                        {task.dueDate && (
-                          <span className="text-sm text-gray-500">
-                            Due: {format(new Date(task.dueDate), 'MMM d, yyyy')}
+                        </Badge>                        {task.dueDate && (
+                          <span className="text-sm text-muted-foreground">
+                            Due: {format(toDate(task.dueDate), 'MMM d, yyyy')}
                           </span>
                         )}
                         {task.category && (
-                          <span className="text-sm text-gray-500">
+                          <span className="text-sm text-muted-foreground">
                             {task.category}
                           </span>
                         )}

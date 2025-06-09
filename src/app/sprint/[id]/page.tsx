@@ -52,7 +52,6 @@ export default function SprintPage() {
 
     loadSprintData();
   }, [user, id]);
-
   const handleTaskToggle = async (dayId: string, taskType: 'core' | 'special', taskIndex: number, currentStatus: boolean) => {
     if (!user || !sprint) return;
 
@@ -65,7 +64,7 @@ export default function SprintPage() {
         taskType,
         taskIndex,
         completed: !currentStatus,
-        completedAt: !currentStatus ? new Date().toISOString() : undefined,
+        completedAt: !currentStatus ? new Date().toISOString() : null,
         updatedAt: new Date(),
       };
 
@@ -147,17 +146,15 @@ export default function SprintPage() {
   const overallProgress = userProgress ? Math.round(
     (userProgress.taskStatuses.filter(ts => ts.completed).length / 
      (sprint.days.length * 3)) * 100
-  ) : 0;
-
-  return (
+  ) : 0;  return (
     <div className="container mx-auto px-6 py-8 max-w-6xl">
-      {/* Header */}
-      <div className="flex items-center gap-4 mb-8">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href="/">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-        </Button>
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-8">
+          <Button variant="ghost" size="icon" asChild>
+            <Link href="/">
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+          </Button>
         <div className="flex-1">
           <h1 className="text-3xl font-bold">{sprint.title}</h1>
           <p className="text-muted-foreground">{sprint.description}</p>
@@ -328,8 +325,7 @@ export default function SprintPage() {
                 </div>
               </CardContent>
             </Card>
-          );
-        })}
+          );        })}
       </div>
     </div>
   );

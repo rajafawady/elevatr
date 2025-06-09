@@ -26,9 +26,7 @@ export default function Home() {
 
   if (!user) {
     return <LoginPage />;
-  }
-
-  return (
-       <Dashboard />
+  }  return (
+    <Dashboard />
   );
 }
