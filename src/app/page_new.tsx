@@ -1,20 +1,12 @@
 'use client';
+
 import { useAuth } from '@/contexts/AuthContext';
 import { LoginPage } from '@/components/auth/LoginPage';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 import { Dashboard } from '@/components/dashboard/Dashboard';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 export default function Home() {
   const { user, loading } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (user && !loading) {
-      router.push('/');
-    }
-  }, [user, loading, router]);
 
   if (loading) {
     return (
@@ -28,7 +20,5 @@ export default function Home() {
     return <LoginPage />;
   }
 
-  return (
-       <Dashboard />
-  );
+  return <Dashboard />;
 }
