@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
   useSprintStore, 
@@ -23,12 +23,24 @@ export function useDataSync() {
   const { loadUserProgress, clearUserProgress } = useUserProgressStore();
   const { updateLastDataRefresh, shouldRefreshData } = useAppStore();
 
-  // Load initial data when user is authenticated
+  // Track previous user ID to detect user changes
+  const [previousUserId, setPreviousUserId] = useState<string | null>(null);
+
+  // Load initial data when user is authenticated or changes
   useEffect(() => {
     if (user) {
-      const loadInitialData = async () => {
-        // Only load if data should be refreshed
-        if (shouldRefreshData()) {
+      // Check if this is a different user (user switched)
+      if (previousUserId && previousUserId !== user.uid) {
+        console.log('🔄 User changed, clearing store data...', { from: previousUserId, to: user.uid });
+        clearSprints();
+        clearTasks();
+        clearUserProgress();
+      }
+      
+      // Update previous user ID
+      setPreviousUserId(user.uid);      const loadInitialData = async () => {
+        // Only load if data should be refreshed or user changed
+        if (shouldRefreshData() || (previousUserId && previousUserId !== user.uid)) {
           try {
             // Load sprints and active sprint concurrently
             await Promise.all([
@@ -49,11 +61,13 @@ export function useDataSync() {
       loadInitialData();
     } else {
       // Clear all data when user logs out
+      console.log('👤 User logged out, clearing store data...');
       clearSprints();
       clearTasks();
       clearUserProgress();
+      setPreviousUserId(null);
     }
-  }, [user]);
+  }, [user, user?.uid]);
 
   // Load user progress when active sprint changes
   useEffect(() => {

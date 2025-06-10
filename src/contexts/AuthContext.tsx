@@ -12,6 +12,7 @@ import * as guestService from '@/services/guestService';
 import * as dataMigration from '@/services/dataMigration';
 import * as syncService from '@/services/syncService';
 import { handleAuthError, AppError } from '@/services/errorHandling';
+import { useSprintStore, useTaskStore, useUserProgressStore } from '@/stores';
 
 interface AuthContextType {
   user: User | null;
@@ -23,6 +24,7 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   continueAsGuest: () => void;
+  clearDataAndStartFresh: () => Promise<void>;
   updateUserPreferences: (preferences: Partial<User['preferences']>) => Promise<void>;
   isMobile: boolean;
   hasLocalDataToSync: boolean;
@@ -344,20 +346,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setFirebaseUser(null);
     } catch (error) {
       console.error('Error creating guest user:', error);
-    }  };const handleSignOut = async () => {
+    }  };  const clearDataAndStartFresh = async () => {
+    try {
+      console.log('🧹 Starting clear data and start fresh process...');
+      
+      // Clear all store data first
+      console.log('🗑️ Clearing store data...');
+      const { clearSprints } = useSprintStore.getState();
+      const { clearTasks } = useTaskStore.getState();
+      const { clearUserProgress } = useUserProgressStore.getState();
+      
+      clearSprints();
+      clearTasks();
+      clearUserProgress();
+      
+      // Use guest service to clear data and create fresh session
+      const freshGuestUser = await guestService.clearGuestDataAndStartFresh();
+      
+      // Update the user state
+      setUser(freshGuestUser);
+      setFirebaseUser(null);
+      
+      console.log('✅ Successfully cleared data and started fresh:', freshGuestUser.uid);
+    } catch (error) {
+      console.error('❌ Error clearing data and starting fresh:', error);
+      throw error;
+    }
+  };
+
+  const handleSignOut = async () => {
     try {
       console.log('🚪 Starting sign-out process...');
       console.log('📊 Current user:', user?.uid);
       console.log('🔥 Firebase user:', firebaseUser?.uid);
       
-      if (firebaseUser && user && !localStorageService.isLocalUser(user.uid)) {
+      if (firebaseUser && user && !localStorageService.isLocalUser(user.uid) && !guestService.isGuestUser(user.uid)) {
         console.log('🤔 Authenticated user signing out - showing logout options...');
         
         // Show logout options to let user choose what to do with their data
         setShowLogoutOptions(true);
+      } else if (user && guestService.isGuestUser(user.uid)) {
+        console.log('👤 Guest user clearing data and starting fresh...');
+        // For guest users, clear data and start fresh
+        await clearDataAndStartFresh();
       } else {
-        console.log('👤 Local/guest user sign out');
-        // Already local/guest user, just sign out
+        console.log('👤 Local user sign out');
+        // For local users, sign out and continue as guest
         await signOut(auth);
         await continueAsGuest();
       }
@@ -493,6 +527,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signInWithGoogle,
     signOut: handleSignOut,
     continueAsGuest,
+    clearDataAndStartFresh,
     updateUserPreferences,
     isMobile,
     hasLocalDataToSync,

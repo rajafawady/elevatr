@@ -3,21 +3,37 @@ import { cn } from '@/lib/utils';
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
+  variant?: 'default' | 'glass' | 'elevated' | 'interactive' | 'gradient';
+  hover?: boolean;
 }
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className, children, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn(
-        'rounded-lg border bg-card text-card-foreground shadow-sm',
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </div>
-  )
+  ({ className, children, variant = 'default', hover = false, ...props }, ref) => {
+    const variants = {
+      default: 'rounded-lg border bg-card text-card-foreground shadow-medium',
+      glass: 'glass-card rounded-lg text-card-foreground',
+      elevated: 'rounded-lg border bg-card text-card-foreground shadow-strong',
+      interactive: 'interactive-card rounded-lg border bg-card text-card-foreground shadow-medium',
+      gradient: 'rounded-lg border bg-gradient-to-br from-card via-card/95 to-accent/20 text-card-foreground shadow-medium',
+    };
+
+    const hoverStyles = hover ? 'hover-lift' : '';
+
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          variants[variant],
+          hoverStyles,
+          'animate-fade-in-up',
+          className
+        )}
+        {...props}
+      >
+        {children}
+      </div>
+    );
+  }
 );
 
 Card.displayName = 'Card';
@@ -42,16 +58,18 @@ interface CardTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {
   // Additional props can be added here if needed
 }
 
-const CardTitle = React.forwardRef<HTMLParagraphElement, CardTitleProps>(
-  ({ className, ...props }, ref) => (
+const CardTitle = React.forwardRef<HTMLHeadingElement, CardTitleProps>(
+  ({ className, children, ...props }, ref) => (
     <h3
       ref={ref}
       className={cn(
-        'text-2xl font-semibold leading-none tracking-tight',
+        'text-2xl font-semibold leading-none tracking-tight bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent',
         className
       )}
       {...props}
-    />
+    >
+      {children}
+    </h3>
   )
 );
 
@@ -65,7 +83,7 @@ const CardDescription = React.forwardRef<HTMLParagraphElement, CardDescriptionPr
   ({ className, ...props }, ref) => (
     <p
       ref={ref}
-      className={cn('text-sm text-muted-foreground', className)}
+      className={cn('text-sm text-muted-foreground leading-relaxed', className)}
       {...props}
     />
   )

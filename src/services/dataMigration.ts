@@ -48,6 +48,14 @@ export const getGuestDataSummary = async (): Promise<DataToMigrate | null> => {
       total + progress.journalEntries.length, 0
     );
     
+    // Only return data if there's something meaningful to migrate
+    const hasSprintsWithContent = guestData.sprints.length > 0;
+    const hasProgressWithContent = totalTasks > 0 || totalJournalEntries > 0;
+    
+    if (!hasSprintsWithContent && !hasProgressWithContent) {
+      return null;
+    }
+    
     return {
       sprints: guestData.sprints,
       userProgress: guestData.userProgress,

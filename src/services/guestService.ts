@@ -120,16 +120,21 @@ export const loadGuestData = async (guestId: string): Promise<{
   }
 };
 
-// Check if guest has any data
+// Check if guest has any meaningful data worth migrating
 export const hasGuestData = async (guestId?: string): Promise<boolean> => {
   try {
     const id = guestId || getGuestId();
     const data = await indexedDB.getGuestData(id);
     
-    return data !== null && (
-      data.sprints.length > 0 || 
-      data.userProgress.length > 0
+    if (!data) return false;
+    
+    // Only return true if there's meaningful data to migrate
+    const hasSprintsWithContent = data.sprints.length > 0;
+    const hasProgressWithContent = data.userProgress.some(progress => 
+      progress.taskStatuses.length > 0 || progress.journalEntries.length > 0
     );
+    
+    return hasSprintsWithContent || hasProgressWithContent;
   } catch (error) {
     console.error('Error checking guest data:', error);
     return false;
@@ -357,5 +362,41 @@ export const getGuestStats = async (guestId?: string): Promise<{
   } catch (error) {
     console.error('Error getting guest stats:', error);
     return { sprintCount: 0, tasksCompleted: 0, journalEntries: 0, dataSize: '0 KB' };
+  }
+};
+
+// Clear all guest data and create a fresh guest session
+export const clearGuestDataAndStartFresh = async (): Promise<User> => {
+  try {
+    console.log('🧹 Clearing guest data and starting fresh...');
+    
+    // Get current guest ID
+    const currentGuestId = localStorage.getItem(GUEST_STORAGE_KEY);
+    
+    // Delete existing guest data if any
+    if (currentGuestId) {
+      try {
+        await deleteGuestData(currentGuestId);
+        console.log('✅ Deleted existing guest data for:', currentGuestId);
+      } catch (error) {
+        console.warn('⚠️ Failed to delete existing guest data, continuing anyway:', error);
+      }
+    }
+    
+    // Create a new guest session with fresh ID
+    const newGuestId = createNewGuestSession();
+    console.log('🆕 Created new guest session:', newGuestId);
+    
+    // Create fresh guest user
+    const freshGuestUser = createGuestUser(newGuestId);
+    
+    // Save initial empty data to IndexedDB
+    await saveGuestProgress(newGuestId, [], [], freshGuestUser);
+    console.log('💾 Saved fresh guest data to IndexedDB');
+    
+    return freshGuestUser;
+  } catch (error) {
+    console.error('❌ Error clearing guest data and starting fresh:', error);
+    throw error;
   }
 };

@@ -23,7 +23,7 @@ import { SyncIndicator } from '@/components/ui/SyncIndicator';
 import { HeaderSyncIndicator } from '@/components/ui/HeaderSyncIndicator';
 
 export function Header() {
-  const { user, signOut, isLocalUser, isGuest, signInWithGoogle } = useAuth();
+  const { user, signOut, isLocalUser, isGuest, signInWithGoogle, clearDataAndStartFresh } = useAuth();
   const { theme, setTheme } = useTheme();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showThemeMenu, setShowThemeMenu] = useState(false);
@@ -34,23 +34,22 @@ export function Header() {
     { value: 'system', label: 'System', icon: Monitor },
   ];
 
-  const currentThemeIcon = themeOptions.find(option => option.value === theme)?.icon || Monitor;
-  return (
-    <header className="border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
+  const currentThemeIcon = themeOptions.find(option => option.value === theme)?.icon || Monitor;  return (
+    <header className="border-b bg-gradient-to-r from-card/95 via-background to-card/95 backdrop-blur-md supports-[backdrop-filter]:bg-card/60 shadow-soft sticky top-0 z-50">
       <div className="flex h-16 items-center px-4 md:px-6">
         {/* Logo */}
         <div className="flex items-center space-x-4">
-          <h1 className="text-xl font-bold text-foreground">Elevatr</h1>
-        </div>
-
-        {/* Search Bar - Hidden on mobile */}
+          <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            Elevatr
+          </h1>
+        </div>        {/* Search Bar - Hidden on mobile */}
         <div className="hidden md:flex flex-1 max-w-md mx-8">
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <div className="relative w-full group">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <input
               type="search"
               placeholder="Search sprints, tasks, or journal entries..."
-              className="w-full pl-10 pr-4 py-2 border border-input rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2.5 border border-input rounded-lg bg-background/50 backdrop-blur-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300 hover:bg-background/70"
             />
           </div>
         </div>
@@ -179,15 +178,22 @@ export function Header() {
                   <Button variant="ghost" size="sm" className="w-full justify-start">
                     <Settings className="h-4 w-4 mr-2" />
                     Settings
-                  </Button>
-                    {/* Different button text/actions based on user type */}
+                  </Button>                  {/* Different button text/actions based on user type */}
                   <Button 
                     variant="ghost" 
                     size="sm" 
                     className="w-full justify-start text-destructive hover:text-destructive"
-                    onClick={() => {
+                    onClick={async () => {
                       setShowUserMenu(false);
-                      signOut();
+                      try {
+                        if (isGuest) {
+                          await clearDataAndStartFresh();
+                        } else {
+                          await signOut();
+                        }
+                      } catch (error) {
+                        console.error('Error during sign out/clear data:', error);
+                      }
                     }}
                   >
                     {isGuest || isLocalUser ? (
