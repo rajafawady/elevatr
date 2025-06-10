@@ -1,83 +1,59 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useState, useEffect, useCallback } from 'react';
+import { useParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { updateJournalEntry, getActiveSprint, getUserProgress } from '@/services/firebase';
-import { JournalEntry, Sprint } from '@/types';
+import { useSprintStore, useUserProgressStore } from '@/stores';
 import { ArrowLeft, Save, BookOpen, Calendar } from 'lucide-react';
 import Link from 'next/link';
 
 export default function JournalPage() {
   const { dayId } = useParams();
   const { user } = useAuth();
-  const router = useRouter();
-  const [activeSprint, setActiveSprint] = useState<Sprint | null>(null);
-  const [content, setContent] = useState('');  const [loading, setLoading] = useState(true);
+  const { activeSprint, loading: sprintLoading } = useSprintStore();
+  const { userProgress, loading: progressLoading, updateJournalOptimistic } = useUserProgressStore();
+  const [content, setContent] = useState('');
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  
+  const loading = sprintLoading || progressLoading;
 
+  // Load existing journal entry when data is available
   useEffect(() => {
-    const loadData = async () => {
-      if (!user || !dayId) return;
-
-      try {
-        setLoading(true);
-        const sprint = await getActiveSprint(user.uid);
-        
-        if (sprint) {
-          setActiveSprint(sprint);
-          
-          // Load existing journal entry
-          const userProgress = await getUserProgress(user.uid, sprint.id);
-          const existingEntry = userProgress?.journalEntries.find(
-            entry => entry.dayId === dayId
-          );
-            if (existingEntry) {
-            setContent(existingEntry.content);
-            // Handle both Date and Timestamp types
-            const updatedAt = existingEntry.updatedAt;
-            if (updatedAt instanceof Date) {
-              setLastSaved(updatedAt);
-            } else if (updatedAt && typeof updatedAt.toDate === 'function') {
-              // Firestore Timestamp
-              setLastSaved(updatedAt.toDate());
-            } else {
-              setLastSaved(new Date());
-            }
-          }
+    if (!loading && userProgress && dayId) {
+      const existingEntry = userProgress.journalEntries.find(
+        entry => entry.dayId === dayId
+      );
+      
+      if (existingEntry) {
+        setContent(existingEntry.content);
+        // Handle both Date and Timestamp types
+        const updatedAt = existingEntry.updatedAt;
+        if (updatedAt instanceof Date) {
+          setLastSaved(updatedAt);
+        } else if (updatedAt && typeof updatedAt.toDate === 'function') {
+          // Firestore Timestamp
+          setLastSaved(updatedAt.toDate());
+        } else {
+          setLastSaved(new Date());
         }
-      } catch (error) {
-        console.error('Error loading journal data:', error);
-      } finally {
-        setLoading(false);
       }
-    };
+    }
+  }, [loading, userProgress, dayId]);
 
-    loadData();
-  }, [user, dayId]);
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if (!user || !activeSprint || !dayId) return;
 
     try {
       setSaving(true);
       setSaveError(null);
       
-      const journalEntry: JournalEntry = {
-        id: `${activeSprint.id}-${dayId}-${Date.now()}`,
-        userId: user.uid,
-        dayId: dayId as string,
-        content,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      await updateJournalEntry(user.uid, activeSprint.id, journalEntry);
+      await updateJournalOptimistic(user.uid, activeSprint.id, dayId as string, content);
       setLastSaved(new Date());
       setHasUnsavedChanges(false);
     } catch (error) {
@@ -86,7 +62,7 @@ export default function JournalPage() {
     } finally {
       setSaving(false);
     }
-  };
+  }, [user, activeSprint, dayId, content, updateJournalOptimistic]);
 
   // Auto-save functionality
   useEffect(() => {
@@ -99,7 +75,7 @@ export default function JournalPage() {
     }, 5000); // Auto-save after 5 seconds of inactivity
 
     return () => clearTimeout(autoSaveTimer);
-  }, [content, hasUnsavedChanges]);
+  }, [content, hasUnsavedChanges, handleSave]);
 
   // Handle content changes
   const handleContentChange = (newContent: string) => {
@@ -120,7 +96,6 @@ export default function JournalPage() {
     "Who did I connect with and what did I learn from them?",
     "What insights or ideas came to me today?",
   ];
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">

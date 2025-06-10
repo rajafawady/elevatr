@@ -1,30 +1,33 @@
 'use client';
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { BookOpen, Calendar, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useSprintStore, useUserProgressStore } from '@/stores';
-import { Sprint, UserProgress } from '@/types';
 
-interface TodayJournalProps {
-  userId: string;
-}
-
-export function TodayJournal({ userId }: TodayJournalProps) {
+export function TodayJournal() {
   const { activeSprint, loading: sprintLoading } = useSprintStore();
   const { userProgress, loading: progressLoading } = useUserProgressStore();
   const loading = sprintLoading || progressLoading;
-
   const getCurrentDay = () => {
     if (!activeSprint) return null;
     
-    const startDate = new Date(activeSprint.startDate);
-    const currentDate = new Date();
-    const diffTime = Math.abs(currentDate.getTime() - startDate.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    return diffDays <= activeSprint.duration ? diffDays.toString() : null;
+    try {
+      const startDate = new Date(activeSprint.startDate);
+      // Validate the date
+      if (isNaN(startDate.getTime())) {
+        return null;
+      }
+      
+      const currentDate = new Date();
+      const diffTime = Math.abs(currentDate.getTime() - startDate.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      return diffDays <= activeSprint.duration ? diffDays.toString() : null;
+    } catch (error) {
+      console.error('Error calculating current day:', error);
+      return null;
+    }
   };
 
   const getTodayProgress = () => {
@@ -39,16 +42,22 @@ export function TodayJournal({ userId }: TodayJournalProps) {
       ts => ts.dayId === currentDay && ts.completed
     ).length;
 
-  return Math.round((completedTasks / totalTasks) * 100);
+    return Math.round((completedTasks / totalTasks) * 100);
+  };
+
+  const getTodayJournalEntry = () => {
+    const currentDay = getCurrentDay();
+    if (!currentDay || !userProgress) return null;
+    
+    return userProgress.journalEntries.find(entry => entry.dayId === currentDay);
   };
 
   if (loading) {
     return (
-      <Card>
-        <CardHeader>
+      <Card>        <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5" />
-            Today's Journal
+            Today&apos;s Journal
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -60,17 +69,16 @@ export function TodayJournal({ userId }: TodayJournalProps) {
       </Card>
     );
   }
-
   const currentDay = getCurrentDay();
   const todayProgress = getTodayProgress();
+  const todayJournal = getTodayJournalEntry();
 
   if (!activeSprint || !currentDay) {
     return (
-      <Card>
-        <CardHeader>
+      <Card>        <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5" />
-            Today's Journal
+            Today&apos;s Journal
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -89,11 +97,10 @@ export function TodayJournal({ userId }: TodayJournalProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
+    <Card>      <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <BookOpen className="h-5 w-5" />
-          Today's Journal
+          Today&apos;s Journal
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -114,17 +121,42 @@ export function TodayJournal({ userId }: TodayJournalProps) {
           />
         </div>
 
-        <div className="space-y-2">
-          <p className="text-sm text-muted-foreground">
-            Reflect on your progress and plan for tomorrow.
-          </p>
-          <Button asChild className="w-full">
-            <Link href={`/journal/${currentDay}`}>
-              <BookOpen className="h-4 w-4 mr-2" />
-              Open Day {currentDay} Journal
-            </Link>
-          </Button>
-        </div>
+        {/* Journal Content Preview */}
+        {todayJournal ? (
+          <div className="space-y-3">
+            <div className="bg-muted/50 rounded-lg p-3">
+              <h4 className="text-sm font-medium mb-2">Today&apos;s Reflection</h4>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {todayJournal.content.length > 150 
+                  ? `${todayJournal.content.slice(0, 150)}...` 
+                  : todayJournal.content || "No content yet..."}
+              </p>
+              {todayJournal.content && (
+                <div className="mt-2 text-xs text-muted-foreground">
+                  {todayJournal.content.split(/\s+/).filter(word => word.length > 0).length} words
+                </div>
+              )}
+            </div>
+            <Button asChild className="w-full" variant="outline">
+              <Link href={`/journal/${currentDay}`}>
+                <BookOpen className="h-4 w-4 mr-2" />
+                Continue Writing
+              </Link>
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              Reflect on your progress and plan for tomorrow.
+            </p>
+            <Button asChild className="w-full">
+              <Link href={`/journal/${currentDay}`}>
+                <BookOpen className="h-4 w-4 mr-2" />
+                Start Day {currentDay} Journal
+              </Link>
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

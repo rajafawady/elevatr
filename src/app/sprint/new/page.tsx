@@ -11,29 +11,53 @@ import { Sprint } from '@/types';
 import { ArrowLeft, Upload, Plus, Calendar, Target } from 'lucide-react';
 import Link from 'next/link';
 
+interface UploadedDayData {
+  day: number;
+  date?: string;
+  tasks: {
+    id: string;
+    title: string;
+    type: string;
+    isCore?: boolean;
+  }[];
+}
+
 export default function NewSprintPage() {
   const { user } = useAuth();
   const router = useRouter();
-  const { createSprint, loading, error } = useOptimisticSprints();
+  const { createSprint, loading } = useOptimisticSprints();
   const [sprintType, setSprintType] = useState<'15-day' | '30-day'>('15-day');
   const [sprintTitle, setSprintTitle] = useState('');
   const [sprintDescription, setSprintDescription] = useState('');  const handleCreateSprint = async () => {
     if (!user || !sprintTitle.trim()) return;
 
-    try {
-      // Use uploaded data if available, otherwise create basic structure
+    try {      // Use uploaded data if available, otherwise create basic structure
       let days;
       if (uploadedSprintData && Array.isArray(uploadedSprintData)) {
-        // Use the uploaded days data
-        days = uploadedSprintData.map((day, index) => ({
-          ...day,
-          day: day.day || `Day ${index + 1}`,
-          date: day.date || (() => {
-            const date = new Date();
-            date.setDate(date.getDate() + index);
-            return date.toISOString().split('T')[0];
-          })(),
-        }));      } else {
+        // Transform uploaded data to match Day interface
+        days = uploadedSprintData.map((day, index) => {
+          const date = day.date || (() => {
+            const d = new Date();
+            d.setDate(d.getDate() + index);
+            return d.toISOString().split('T')[0];
+          })();
+          
+          // Separate core and special tasks
+          const coreTasks = day.tasks
+            .filter(task => task.isCore)
+            .map(task => ({ category: task.type, description: task.title }));
+          
+          const specialTasks = day.tasks
+            .filter(task => !task.isCore)
+            .map(task => task.title);
+          
+          return {
+            day: day.day.toString() || `Day ${index + 1}`,
+            date,
+            coreTasks,
+            specialTasks,
+          };
+        });} else {
         // Create days structure with default tasks for manual entry
         days = Array.from({ length: sprintType === '15-day' ? 15 : 30 }, (_, i) => {
           const date = new Date();
@@ -71,7 +95,7 @@ export default function NewSprintPage() {
       alert('Error creating sprint. Please try again.');
     }
   };
-  const [uploadedSprintData, setUploadedSprintData] = useState<any>(null);
+  const [uploadedSprintData, setUploadedSprintData] = useState<UploadedDayData[] | null>(null);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -287,10 +311,9 @@ export default function NewSprintPage() {
                     </span>
                   </div>                  <div className="flex items-center justify-between text-sm mt-2">
                     <span>Total Tasks:</span>
-                    <span className="font-medium">
-                      {uploadedSprintData ? 
-                        uploadedSprintData.reduce((acc: number, day: any) => 
-                          acc + (day.coreTasks?.length || 0) + (day.specialTasks?.length || 0), 0
+                    <span className="font-medium">                      {uploadedSprintData ? 
+                        uploadedSprintData.reduce((acc: number, day: UploadedDayData) => 
+                          acc + (day.tasks?.length || 0), 0
                         ) + ' tasks' :
                         `${(sprintType === '15-day' ? 15 : 30) * 3} tasks (default)`
                       }

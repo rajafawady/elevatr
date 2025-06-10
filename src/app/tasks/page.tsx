@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Button } from '@/components/ui/Button';
@@ -16,16 +16,15 @@ export default function TasksPage() {
   const { tasks, loading, updateTaskOptimistic } = useTaskStore();
   const [filter, setFilter] = useState<'all' | 'active' | 'completed' | 'blocked'>('all');
   const [priorityFilter, setPriorityFilter] = useState<TaskPriority | 'all'>('all');
-
   // Helper function to convert Date or Timestamp to Date
-  const toDate = (dateValue: Date | any): Date => {
+  const toDate = (dateValue: Date | { toDate?: () => Date }): Date => {
     if (dateValue instanceof Date) {
       return dateValue;
     }
     if (dateValue && typeof dateValue.toDate === 'function') {
       return dateValue.toDate();
     }
-    return new Date(dateValue);
+    return new Date();
   };
   const handleToggleTask = async (task: Task) => {
     if (!user) return;

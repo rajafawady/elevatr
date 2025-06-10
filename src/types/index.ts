@@ -86,6 +86,7 @@ export interface User {
   photoURL?: string;
   createdAt: string;
   lastLoginAt: string;
+  originalFirebaseUid?: string; // For cached local users, stores original Firebase UID
   preferences: {
     darkMode: boolean;
     notifications: boolean;

@@ -8,7 +8,7 @@ import { Sprint } from "@/types";
 import { getSprintsByUser } from "@/services/firebase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import { Plus, Calendar, Target, Users } from "lucide-react";
+import { Plus, Calendar, Target } from "lucide-react";
 import Link from "next/link";
 
 export default function SprintsPage() {
@@ -16,7 +16,6 @@ export default function SprintsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
-  const router = useRouter();
 
   useEffect(() => {
     const loadSprints = async () => {

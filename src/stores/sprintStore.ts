@@ -8,6 +8,7 @@ import {
   updateSprint,
   getActiveSprint 
 } from '@/services/firebase';
+import * as localStorageService from '@/services/localStorage';
 
 interface SprintState {
   // State
@@ -34,9 +35,7 @@ export const useSprintStore = create<SprintState>()(
         sprints: [],
         activeSprint: null,
         loading: false,
-        error: null,
-
-        // Load all sprints for a user
+        error: null,        // Load all sprints for a user
         loadSprints: async (userId: string) => {
           const state = get();
           
@@ -48,7 +47,16 @@ export const useSprintStore = create<SprintState>()(
           set({ loading: true, error: null });
           
           try {
-            const sprints = await getSprintsByUser(userId);
+            let sprints: Sprint[];
+            
+            if (localStorageService.isLocalUser(userId)) {
+              // Load from local storage
+              sprints = localStorageService.getLocalSprints(userId);
+            } else {
+              // Load from Firebase
+              sprints = await getSprintsByUser(userId);
+            }
+            
             set({ 
               sprints, 
               loading: false,
@@ -61,9 +69,7 @@ export const useSprintStore = create<SprintState>()(
               error: 'Failed to load sprints' 
             });
           }
-        },
-
-        // Load active sprint for a user
+        },        // Load active sprint for a user
         loadActiveSprint: async (userId: string) => {
           const state = get();
           
@@ -75,7 +81,16 @@ export const useSprintStore = create<SprintState>()(
           set({ loading: true, error: null });
           
           try {
-            const activeSprint = await getActiveSprint(userId);
+            let activeSprint: Sprint | null;
+            
+            if (localStorageService.isLocalUser(userId)) {
+              // Load from local storage
+              activeSprint = localStorageService.getLocalActiveSprint(userId);
+            } else {
+              // Load from Firebase
+              activeSprint = await getActiveSprint(userId);
+            }
+            
             set({ 
               activeSprint, 
               loading: false,
@@ -88,9 +103,7 @@ export const useSprintStore = create<SprintState>()(
               error: 'Failed to load active sprint' 
             });
           }
-        },
-
-        // Load a specific sprint
+        },        // Load a specific sprint
         loadSprint: async (sprintId: string) => {
           const state = get();
           
@@ -130,8 +143,18 @@ export const useSprintStore = create<SprintState>()(
           set({ loading: true, error: null });
           
           try {
-            const sprintId = await createSprint(sprintData.userId, sprintData);
-            const newSprint = { ...sprintData, id: sprintId };
+            let sprintId: string;
+            let newSprint: Sprint;
+            
+            if (localStorageService.isLocalUser(sprintData.userId)) {
+              // Create in local storage
+              newSprint = localStorageService.addLocalSprint(sprintData.userId, sprintData);
+              sprintId = newSprint.id;
+            } else {
+              // Create in Firebase
+              sprintId = await createSprint(sprintData.userId, sprintData);
+              newSprint = { ...sprintData, id: sprintId };
+            }
             
             set(state => ({ 
               sprints: [...state.sprints, newSprint],
@@ -149,11 +172,16 @@ export const useSprintStore = create<SprintState>()(
             });
             throw error;
           }
-        },
-
-        // Update sprint with optimistic updates
+        },        // Update sprint with optimistic updates
         updateSprintOptimistic: async (sprintId: string, updates: Partial<Sprint>) => {
           const state = get();
+          
+          // Find the sprint to get the userId
+          const sprint = state.sprints.find(s => s.id === sprintId);
+          if (!sprint) {
+            console.error('Sprint not found for update');
+            return;
+          }
           
           // Optimistic update
           set(state => ({
@@ -168,7 +196,13 @@ export const useSprintStore = create<SprintState>()(
           }));
           
           try {
-            await updateSprint(sprintId, updates);
+            if (localStorageService.isLocalUser(sprint.userId)) {
+              // Update in local storage
+              localStorageService.updateLocalSprint(sprint.userId, sprintId, updates);
+            } else {
+              // Update in Firebase
+              await updateSprint(sprintId, updates);
+            }
           } catch (error) {
             // Revert optimistic update on error
             set(state);

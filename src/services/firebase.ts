@@ -16,7 +16,7 @@ import {
   writeBatch,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Sprint, UserProgress, TaskStatus, JournalEntry, Task } from '@/types';
+import { Sprint, UserProgress, TaskStatus, JournalEntry, Task, User } from '@/types';
 
 // Custom error class for Firebase operations
 export class FirebaseServiceError extends Error {
@@ -739,5 +739,17 @@ export const updateTask = async (taskId: string, updates: Partial<Task>): Promis
     });
   } catch (error) {
     return handleFirebaseError(error, 'update task');
+  }
+};
+
+// User operations
+export const getUser = async (userId: string): Promise<User | null> => {
+  try {
+    validateUserId(userId);
+
+    const userDoc = await getDoc(doc(db, 'users', userId));
+    return userDoc.exists() ? userDoc.data() as User : null;
+  } catch (error) {
+    return handleFirebaseError(error, 'get user');
   }
 };

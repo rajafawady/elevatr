@@ -2,19 +2,10 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { LoginPage } from '@/components/auth/LoginPage';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 import { Dashboard } from '@/components/dashboard/Dashboard';
 
 export default function Home() {
   const { user, loading } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (user && !loading) {
-      router.push('/');
-    }
-  }, [user, loading, router]);
 
   if (loading) {
     return (
@@ -24,9 +15,11 @@ export default function Home() {
     );
   }
 
+  // If no user at all (neither authenticated nor local), show login options
   if (!user) {
     return <LoginPage />;
-  }  return (
-    <Dashboard />
-  );
+  }
+
+  // User exists (either authenticated or local), show dashboard
+  return <Dashboard />;
 }

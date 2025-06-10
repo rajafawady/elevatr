@@ -6,6 +6,8 @@ import {
   updateTaskStatus,
   updateJournalEntry 
 } from '@/services/firebase';
+import * as localStorageService from '@/services/localStorage';
+import * as guestService from '@/services/guestService';
 
 interface UserProgressState {
   // State
@@ -43,9 +45,7 @@ export const useUserProgressStore = create<UserProgressState>()(
         userProgress: null,
         loading: false,
         updating: null,
-        error: null,
-
-        // Load user progress for a sprint
+        error: null,        // Load user progress for a sprint
         loadUserProgress: async (userId: string, sprintId: string) => {
           const state = get();
           
@@ -57,7 +57,52 @@ export const useUserProgressStore = create<UserProgressState>()(
           set({ loading: true, error: null });
           
           try {
-            const userProgress = await getUserProgress(userId, sprintId);
+            let userProgress: UserProgress | null;
+              if (localStorageService.isLocalUser(userId) || guestService.isGuestUser(userId)) {
+              // Load from local storage for local users or IndexedDB for guest users
+              if (guestService.isGuestUser(userId)) {
+                // For guest users, load from IndexedDB
+                const guestData = await guestService.loadGuestData(userId);
+                if (guestData) {
+                  userProgress = guestData.userProgress.find(p => p.sprintId === sprintId) || null;
+                  if (!userProgress) {                    // Create new guest progress if it doesn't exist
+                    userProgress = {
+                      userId,
+                      sprintId,
+                      taskStatuses: [],
+                      journalEntries: [],
+                      streaks: {
+                        currentTaskStreak: 0,
+                        longestTaskStreak: 0,
+                        currentJournalStreak: 0,
+                        longestJournalStreak: 0,
+                      },
+                      stats: {
+                        totalTasksCompleted: 0,
+                        totalDaysCompleted: 0,
+                        completionPercentage: 0,
+                      },
+                    };
+                    if (userProgress) {
+                      await guestService.updateGuestProgress(userId, userProgress);
+                    }
+                  }
+                } else {
+                  userProgress = null;
+                }
+              } else {
+                // For local users, load from localStorage
+                userProgress = localStorageService.getLocalProgress(userId, sprintId);
+                if (!userProgress) {
+                  // Create new local progress if it doesn't exist
+                  userProgress = localStorageService.createLocalProgress(userId, sprintId);
+                }
+              }
+            } else {
+              // Load from Firebase
+              userProgress = await getUserProgress(userId, sprintId);
+            }
+            
             set({ 
               userProgress, 
               loading: false,
@@ -128,10 +173,20 @@ export const useUserProgressStore = create<UserProgressState>()(
                 completionPercentage: Math.round((completedTasks / totalTasks) * 100),
               }
             }
-          }));
-          
-          try {
-            await updateTaskStatus(userId, sprintId, newTaskStatus);
+          }));            try {
+            if (localStorageService.isLocalUser(userId) || guestService.isGuestUser(userId)) {
+              // Update local storage for local users or IndexedDB for guest users
+              if (guestService.isGuestUser(userId)) {
+                // For guest users, update IndexedDB
+                await guestService.updateGuestTaskStatus(userId, sprintId, newTaskStatus);
+              } else {
+                // For local users, update localStorage
+                localStorageService.updateLocalTaskStatus(userId, sprintId, newTaskStatus);
+              }
+            } else {
+              // Update Firebase
+              await updateTaskStatus(userId, sprintId, newTaskStatus);
+            }
           } catch (error) {
             // Revert optimistic update on error
             set({ userProgress: currentProgress });
@@ -180,8 +235,7 @@ export const useUserProgressStore = create<UserProgressState>()(
               ...currentProgress,
               journalEntries: newJournalEntries,
             }
-          }));
-            try {
+          }));            try {
             const journalEntry = {
               id: existingIndex >= 0 ? currentProgress.journalEntries[existingIndex].id : `temp-${dayId}`,
               userId,
@@ -190,8 +244,19 @@ export const useUserProgressStore = create<UserProgressState>()(
               createdAt: existingIndex >= 0 ? currentProgress.journalEntries[existingIndex].createdAt : new Date(),
               updatedAt: new Date(),
             };
-            
-            await updateJournalEntry(userId, sprintId, journalEntry);
+              if (localStorageService.isLocalUser(userId) || guestService.isGuestUser(userId)) {
+              // Update local storage for local users or IndexedDB for guest users
+              if (guestService.isGuestUser(userId)) {
+                // For guest users, update IndexedDB
+                await guestService.updateGuestJournalEntry(userId, sprintId, journalEntry);
+              } else {
+                // For local users, update localStorage
+                localStorageService.updateLocalJournalEntry(userId, sprintId, journalEntry);
+              }
+            } else {
+              // Update Firebase
+              await updateJournalEntry(userId, sprintId, journalEntry);
+            }
           } catch (error) {
             // Revert optimistic update on error
             set({ userProgress: currentProgress });

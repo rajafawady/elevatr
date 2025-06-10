@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { LayoutWrapper } from "@/components/layout/LayoutWrapper";
 import { DataProvider } from "@/components/providers/DataProvider";
+import { ErrorProvider } from "@/components/providers/ErrorProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,6 +24,24 @@ export const metadata: Metadata = {
   keywords: ["career", "productivity", "goal tracking", "sprints", "professional development"],
   authors: [{ name: "Elevatr Team" }],
   creator: "Elevatr",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Elevatr",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  icons: {
+    icon: [
+      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/icons/icon-152x152.png", sizes: "152x152", type: "image/png" },
+    ],
+  },
   openGraph: {
     title: "Elevatr - Career Success Tracker",
     description: "Track your career growth with structured sprints",
@@ -39,6 +58,9 @@ export const metadata: Metadata = {
 export const viewport = {
   width: "device-width",
   initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: "#000000",
 };
 
 export default function RootLayout({
@@ -52,15 +74,17 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
         <ThemeProvider>
-          <AuthProvider>
-            <NotificationProvider>
-              <DataProvider>
-                <LayoutWrapper>
-                  {children}
-                </LayoutWrapper>
-              </DataProvider>
-            </NotificationProvider>
-          </AuthProvider>
+          <ErrorProvider>
+            <AuthProvider>
+              <NotificationProvider>
+                <DataProvider>
+                  <LayoutWrapper>
+                    {children}
+                  </LayoutWrapper>
+                </DataProvider>
+              </NotificationProvider>
+            </AuthProvider>
+          </ErrorProvider>
         </ThemeProvider>
       </body>
     </html>

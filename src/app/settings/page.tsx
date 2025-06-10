@@ -13,20 +13,25 @@ import {
   Clock, 
   Globe,
   Save,
-  LogOut
+  LogOut,
+  Database,
+  Cloud,
+  AlertTriangle
 } from 'lucide-react';
-import { User as UserType } from '@/types';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
+import * as localStorageService from '@/services/localStorage';
+import * as dataSync from '@/services/dataSync';
 
 export default function SettingsPage() {
-  const { user } = useAuth();
+  const { user, isLocalUser, signInWithGoogle } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
+  const [storageStats, setStorageStats] = useState<any>(null);
   
   // User preferences state
   const [preferences, setPreferences] = useState({
@@ -49,25 +54,41 @@ export default function SettingsPage() {
         email: user.email || ''
       });
       
-      if ('preferences' in user) {
-        setPreferences((user as any).preferences);
+      // Load preferences from user object or localStorage for local users
+      if (isLocalUser) {
+        const localPrefs = localStorageService.getLocalUserPreferences(user.uid);
+        if (localPrefs) {
+          setPreferences(localPrefs);
+        }
+      } else if ('preferences' in user) {
+        setPreferences((user as { preferences: typeof preferences }).preferences);
       }
     }
-  }, [user]);
+    
+    // Get storage statistics
+    setStorageStats(dataSync.getStorageStats());
+  }, [user, isLocalUser]);
 
   const handleSavePreferences = async () => {
     if (!user) return;
     
     setLoading(true);
     try {
-      const userRef = doc(db, 'users', user.uid);
-      await updateDoc(userRef, {
-        preferences: preferences,
-        displayName: profile.displayName,
-        updatedAt: new Date().toISOString()
-      });
+      if (isLocalUser) {
+        // Save preferences locally for local users
+        localStorageService.setLocalUserPreferences(user.uid, preferences);
+        setSaveMessage('Settings saved locally!');
+      } else {
+        // Save to Firebase for authenticated users
+        const userRef = doc(db, 'users', user.uid);
+        await updateDoc(userRef, {
+          preferences: preferences,
+          displayName: profile.displayName,
+          updatedAt: new Date().toISOString()
+        });
+        setSaveMessage('Settings saved successfully!');
+      }
       
-      setSaveMessage('Settings saved successfully!');
       setTimeout(() => setSaveMessage(''), 3000);
     } catch (error) {
       console.error('Error saving settings:', error);
@@ -80,10 +101,23 @@ export default function SettingsPage() {
 
   const handleSignOut = async () => {
     try {
-      await signOut(auth);
+      if (isLocalUser) {
+        // For local users, just clear session
+        window.location.reload();
+      } else {
+        await signOut(auth);
+      }
       router.push('/');
     } catch (error) {
       console.error('Error signing out:', error);
+    }
+  };
+
+  const handleSignInToSync = async () => {
+    try {
+      await signInWithGoogle();
+    } catch (error) {
+      console.error('Error signing in:', error);
     }
   };
 
@@ -113,10 +147,47 @@ export default function SettingsPage() {
           }`}>
             {saveMessage}
           </div>
-        )}
-
-        <div className="space-y-8">
-          {/* Profile Settings */}
+        )}        <div className="space-y-8">
+          {/* Local User Storage Info */}
+          {isLocalUser && (
+            <Card className="p-6 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+              <div className="flex items-center mb-4">
+                <Database className="w-5 h-5 mr-2 text-blue-600" />
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Local Storage</h2>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="flex items-start">
+                  <AlertTriangle className="w-5 h-5 mr-2 text-amber-500 mt-0.5" />
+                  <div>
+                    <h3 className="font-medium text-gray-900 dark:text-white">Working Locally</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      Your data is stored on this device only. Sign in with Google to sync your progress across devices.
+                    </p>
+                  </div>
+                </div>
+                
+                {storageStats && (
+                  <div className="bg-white dark:bg-gray-800 p-3 rounded-lg border">
+                    <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Storage Usage</h4>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                      <div>Used: {Math.round(storageStats.localStorage.used / 1024)} KB</div>
+                      <div>Available: {Math.round(storageStats.localStorage.available / 1024)} KB</div>
+                      <div>Has Local Data: {storageStats.hasLocalData ? 'Yes' : 'No'}</div>
+                    </div>
+                  </div>
+                )}
+                
+                <Button 
+                  onClick={handleSignInToSync}
+                  className="flex items-center bg-blue-600 hover:bg-blue-700"
+                >
+                  <Cloud className="w-4 h-4 mr-2" />
+                  Sign In to Enable Cloud Sync
+                </Button>
+              </div>
+            </Card>
+          )}          {/* Profile Settings */}
           <Card className="p-6">
             <div className="flex items-center mb-4">
               <User className="w-5 h-5 mr-2 text-blue-600" />
@@ -134,21 +205,30 @@ export default function SettingsPage() {
                   onChange={(e) => setProfile(prev => ({ ...prev, displayName: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter your display name"
+                  disabled={isLocalUser}
                 />
+                {isLocalUser && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Profile changes are not available for local users. Sign in to edit your profile.
+                  </p>
+                )}
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Email
+                  {isLocalUser ? 'User Type' : 'Email'}
                 </label>
                 <input
-                  type="email"
-                  value={profile.email}
+                  type={isLocalUser ? "text" : "email"}
+                  value={isLocalUser ? 'Local User (No Email)' : profile.email}
                   disabled
                   className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-500"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Email cannot be changed from this interface
+                  {isLocalUser 
+                    ? 'Local users don\'t have email addresses' 
+                    : 'Email cannot be changed from this interface'
+                  }
                 </p>
               </div>
             </div>
@@ -258,9 +338,7 @@ export default function SettingsPage() {
                 </option>
               </select>
             </div>
-          </Card>
-
-          {/* Action Buttons */}
+          </Card>          {/* Action Buttons */}
           <div className="flex gap-4">
             <Button 
               onClick={handleSavePreferences}
@@ -281,7 +359,7 @@ export default function SettingsPage() {
               className="flex items-center text-red-600 border-red-600 hover:bg-red-50"
             >
               <LogOut className="w-4 h-4 mr-2" />
-              Sign Out
+              {isLocalUser ? 'Reset Local Session' : 'Sign Out'}
             </Button>
           </div>
         </div>

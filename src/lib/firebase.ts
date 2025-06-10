@@ -22,12 +22,20 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-// Configure Google provider with custom parameters
+// Configure Google provider with mobile-optimized parameters
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.addScope('email');
 googleProvider.addScope('profile');
+
+// Mobile-optimized custom parameters
 googleProvider.setCustomParameters({
-  prompt: 'select_account'
+  prompt: 'select_account',
+  // Remove conflicting display parameter for redirect compatibility
+  // display: 'popup', // This conflicts with redirect mode
+  // Ensure we get a refresh token for better session management
+  access_type: 'online',
+  // Help with mobile browser compatibility
+  include_granted_scopes: 'true'
 });
 
 // Initialize Firebase Cloud Messaging (only in browser)

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -48,14 +48,9 @@ export default function CalendarPage() {
       }
     };
 
-    loadData();
-  }, [user]);
+    loadData();  }, [user]);
 
-  useEffect(() => {
-    generateCalendarDays();
-  }, [currentDate, activeSprint, userProgress]);
-
-  const generateCalendarDays = () => {
+  const generateCalendarDays = useCallback(() => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     
@@ -106,10 +101,12 @@ export default function CalendarPage() {
         totalTasks: 0,
         hasJournal: false,
       });
-    }
+    }    setCalendarDays(days);
+  }, [currentDate, activeSprint, userProgress]);
 
-    setCalendarDays(days);
-  };
+  useEffect(() => {
+    generateCalendarDays();
+  }, [generateCalendarDays]);
 
   const getSprintDayForDate = (date: Date): string | undefined => {
     if (!activeSprint) return undefined;

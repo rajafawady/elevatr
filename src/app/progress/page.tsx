@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Card } from '@/components/ui/Card';
@@ -16,11 +16,11 @@ import { useSprintStore, useTaskStore } from '@/stores';
 import { format, subDays, eachDayOfInterval, isAfter } from 'date-fns';
 
 // Utility function to safely convert Firebase Timestamp to Date
-const toDate = (timestamp: Date | any): Date => {
-  if (timestamp && typeof timestamp.toDate === 'function') {
+const toDate = (timestamp: Date | { toDate?: () => Date }): Date => {
+  if (timestamp && typeof timestamp === 'object' && 'toDate' in timestamp && typeof timestamp.toDate === 'function') {
     return timestamp.toDate();
   }
-  return timestamp instanceof Date ? timestamp : new Date(timestamp);
+  return timestamp instanceof Date ? timestamp : new Date();
 };
 
 interface ProgressStats {
@@ -43,23 +43,15 @@ interface DailyProgress {
 }
 
 export default function ProgressPage() {
-  const { user } = useAuth();
   const { sprints, loading: sprintLoading } = useSprintStore();
   const { tasks, loading: taskLoading } = useTaskStore();
   const [stats, setStats] = useState<ProgressStats | null>(null);
   const [dailyProgress, setDailyProgress] = useState<DailyProgress[]>([]);
   const [recentSprints, setRecentSprints] = useState<Sprint[]>([]);
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('30d');
-
   const loading = sprintLoading || taskLoading;
 
-  useEffect(() => {
-    if (sprints.length > 0 && tasks.length > 0) {
-      loadProgressData();
-    }
-  }, [sprints, tasks, timeRange]);
-
-  const loadProgressData = async () => {
+  const loadProgressData = useCallback(async () => {
     // Calculate statistics
     const progressStats = calculateStats(sprints, tasks);
     setStats(progressStats);
@@ -74,7 +66,13 @@ export default function ProgressPage() {
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, 5);
     setRecentSprints(recent);
-  };
+  }, [sprints, tasks, timeRange]);
+
+  useEffect(() => {
+    if (sprints.length > 0 && tasks.length > 0) {
+      loadProgressData();
+    }
+  }, [sprints, tasks, loadProgressData]);
 
   const calculateStats = (sprints: Sprint[], tasks: Task[]): ProgressStats => {
     const completedSprints = sprints.filter(s => s.status === 'completed');

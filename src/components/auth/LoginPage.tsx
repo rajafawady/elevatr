@@ -1,32 +1,58 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { LogIn, Trophy, Target, Calendar, BarChart3, AlertCircle } from 'lucide-react';
+import { LogIn, Trophy, Target, Calendar, BarChart3 } from 'lucide-react';
 import { getAuthErrorMessage } from '@/lib/auth-utils';
+import { useGlobalErrorHandler } from '@/components/providers/ErrorProvider';
+import { InlineError } from '@/components/ui/ErrorNotification';
+import { debugFirebaseConfig, testGoogleProviderConfig } from '@/utils/auth-debug';
+import { runAuthDiagnostics } from '@/utils/auth-diagnostics';
+import '@/utils/auth-fixes'; // This will make auth fixes available globally
 
 export function LoginPage() {
-  const { signInWithGoogle, signInWithGooglePopup, loading } = useAuth();
+  const { signInWithGoogle, continueAsGuest, loading, isMobile, hasLocalDataToSync } = useAuth();
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const handleSignIn = async (usePopup = false) => {
+  
+  // Debug Firebase configuration on component mount
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔍 LoginPage: Running Firebase diagnostics...');
+      debugFirebaseConfig();
+      testGoogleProviderConfig();
+      
+      // Make comprehensive diagnostics available globally in development
+      (window as any).runAuthDiagnostics = runAuthDiagnostics;
+      console.log('🔧 Run window.runAuthDiagnostics() for comprehensive testing');
+    }
+  }, []);
+  
+  const handleSignIn = async () => {
     setIsSigningIn(true);
     setError(null);
     
     try {
-      if (usePopup) {
-        await signInWithGooglePopup();
-      } else {
-        await signInWithGoogle();
-      }    } catch (error: any) {
-      console.error('Sign in error:', error);
-      setError(getAuthErrorMessage(error));
+      console.log('🎯 LoginPage: Starting sign-in process...');
+      await signInWithGoogle();
+      console.log('✅ LoginPage: Sign-in process completed');
+    } catch (error: unknown) {
+      console.error('❌ LoginPage: Sign in error:', error);
+      setError(getAuthErrorMessage(error as Error));
     } finally {
       setIsSigningIn(false);
+    }
+  };
+
+  const handleContinueAsGuest = () => {
+    try {
+      continueAsGuest();
+    } catch (error: unknown) {
+      console.error('Continue as guest error:', error);
+      setError('Failed to continue as guest. Please try again.');
     }
   };
 
@@ -69,8 +95,17 @@ export function LoginPage() {
           <Card className="p-8 text-center">
             <h2 className="text-2xl font-semibold mb-6">Get Started</h2>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              Sign in with your Google account to start tracking your career journey
+              {hasLocalDataToSync 
+                ? "Sign in to sync your local data to the cloud, or continue without an account"
+                : "Sign in with your Google account for cloud sync, or try locally first"
+              }
             </p>
+            
+            {hasLocalDataToSync && (
+              <div className="mb-4 p-3 bg-blue-100 border border-blue-400 text-blue-700 rounded">
+                You have local data that can be synced to the cloud when you sign in.
+              </div>
+            )}
             
             {error && (
               <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
@@ -80,7 +115,7 @@ export function LoginPage() {
 
             <div className="space-y-3">
               <Button
-                onClick={() => handleSignIn(false)}
+                onClick={handleSignIn}
                 disabled={loading || isSigningIn}
                 className="w-full flex items-center justify-center gap-3"
                 size="lg"
@@ -93,15 +128,34 @@ export function LoginPage() {
                 {isSigningIn ? 'Signing in...' : 'Sign in with Google'}
               </Button>
               
-              <div className="text-sm text-gray-500">
-                Having trouble with popups?{' '}
-                <button
-                  onClick={() => handleSignIn(true)}
-                  disabled={loading || isSigningIn}
-                  className="text-blue-600 hover:text-blue-800 underline"
-                >
-                  Try popup sign-in
-                </button>
+              <div className="flex items-center gap-2 my-4">
+                <div className="flex-1 h-px bg-gray-300 dark:bg-gray-600"></div>
+                <span className="text-sm text-gray-500 dark:text-gray-400">or</span>
+                <div className="flex-1 h-px bg-gray-300 dark:bg-gray-600"></div>
+              </div>
+              
+              <Button
+                onClick={handleContinueAsGuest}
+                disabled={loading}
+                variant="outline"
+                className="w-full"
+                size="lg"
+              >
+                Continue without signing in
+              </Button>
+              
+              {isMobile && (
+                <div className="text-xs text-gray-500 text-center">
+                  {isSigningIn ? 
+                    'If redirected to Google, please complete sign-in and return to this page.' :
+                    'You may be redirected to Google to complete sign-in.'
+                  }
+                </div>
+              )}
+              
+              <div className="text-xs text-gray-500 text-center mt-3">
+                <p>• Sign in: Cloud sync, backup, access from any device</p>
+                <p>• Local mode: Your data stays private on this device only</p>
               </div>
             </div>
           </Card>

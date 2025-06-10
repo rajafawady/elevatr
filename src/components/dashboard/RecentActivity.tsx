@@ -8,16 +8,15 @@ import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
 
 // Utility function to safely convert Firebase Timestamp to Date
-const toDate = (timestamp: Date | any): Date => {
-  if (timestamp && typeof timestamp.toDate === 'function') {
+const toDate = (timestamp: Date | { toDate?: () => Date }): Date => {
+  if (timestamp && typeof timestamp === 'object' && 'toDate' in timestamp && typeof timestamp.toDate === 'function') {
     return timestamp.toDate();
   }
-  return timestamp instanceof Date ? timestamp : new Date(timestamp);
+  if (timestamp instanceof Date) {
+    return timestamp;
+  }
+  return new Date();
 };
-
-interface RecentActivityProps {
-  userId: string;
-}
 
 interface ActivityItem {
   id: string;
@@ -29,7 +28,7 @@ interface ActivityItem {
   href?: string;
 }
 
-export function RecentActivity({ userId }: RecentActivityProps) {
+export function RecentActivity() {
   const { userProgress, loading } = useUserProgressStore();
 
   // Generate activity items from user progress data

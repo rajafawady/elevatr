@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from '@/components/ui/Button';
@@ -9,6 +10,8 @@ import {
   User, 
   Settings, 
   LogOut, 
+  LogIn,
+  Trash2,
   Sun, 
   Moon, 
   Monitor,
@@ -16,9 +19,11 @@ import {
   Search
 } from 'lucide-react';
 import { useState } from 'react';
+import { SyncIndicator } from '@/components/ui/SyncIndicator';
+import { HeaderSyncIndicator } from '@/components/ui/HeaderSyncIndicator';
 
 export function Header() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, isLocalUser, isGuest, signInWithGoogle } = useAuth();
   const { theme, setTheme } = useTheme();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showThemeMenu, setShowThemeMenu] = useState(false);
@@ -53,10 +58,16 @@ export function Header() {
         {/* Spacer for mobile */}
         <div className="flex-1 md:hidden"></div>        {/* Right Side Actions */}
         <div className="flex items-center space-x-2 md:space-x-4">
+          {/* Sync Progress Indicator */}
+          <HeaderSyncIndicator />
+
           {/* Search Button - Mobile only */}
           <Button variant="ghost" size="icon" className="md:hidden">
             <Search className="h-5 w-5" />
           </Button>
+
+          {/* Sync Status Indicator */}
+          <SyncIndicator className="hidden md:flex" />
 
           {/* Notifications - Hidden on mobile */}
           <Button variant="ghost" size="icon" className="relative hidden sm:flex">
@@ -83,9 +94,8 @@ export function Header() {
                       key={option.value}
                       variant="ghost"
                       size="sm"
-                      className={`w-full justify-start ${theme === option.value ? 'bg-accent' : ''}`}
-                      onClick={() => {
-                        setTheme(option.value as any);
+                      className={`w-full justify-start ${theme === option.value ? 'bg-accent' : ''}`}                      onClick={() => {
+                        setTheme(option.value as 'light' | 'dark' | 'system');
                         setShowThemeMenu(false);
                       }}
                     >
@@ -102,42 +112,90 @@ export function Header() {
               variant="ghost"
               className="flex items-center space-x-2 px-2 md:px-3"
               onClick={() => setShowUserMenu(!showUserMenu)}
-            >
-              {user?.photoURL ? (
-                <img
+            >              {user?.photoURL ? (
+                <Image
                   src={user.photoURL}
                   alt={user.displayName || 'User'}
-                  className="h-6 w-6 rounded-full"
+                  width={24}
+                  height={24}
+                  className="rounded-full"
                 />
               ) : (
                 <User className="h-5 w-5" />
-              )}
-              <span className="hidden md:block text-sm font-medium">
-                {user?.displayName?.split(' ')[0] || 'User'}
+              )}              <span className="hidden md:block text-sm font-medium">
+                {isGuest ? 'Guest User' : isLocalUser ? 'Local User' : user?.displayName?.split(' ')[0] || 'User'}
               </span>
-            </Button>
-
-            {showUserMenu && (
+            </Button>            {showUserMenu && (
               <Card className="absolute right-0 top-full mt-2 w-48 z-50">
                 <div className="p-2">
                   <div className="px-3 py-2 border-b border-border mb-2">
-                    <p className="text-sm font-medium">{user?.displayName}</p>
-                    <p className="text-xs text-muted-foreground">{user?.email}</p>
+                    <p className="text-sm font-medium">
+                      {isGuest ? 'Guest User' : isLocalUser ? 'Local User' : user?.displayName || 'User'}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {isGuest ? 'Data stored temporarily' : isLocalUser ? 'Data stored locally only' : user?.email || 'No email'}
+                    </p>
                   </div>
+                    {/* For Guest Users: Show Sign In option */}
+                  {isGuest && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="w-full justify-start mb-1"
+                      onClick={async () => {
+                        setShowUserMenu(false);
+                        try {
+                          await signInWithGoogle();
+                        } catch (error) {
+                          console.error('Error signing in:', error);
+                        }
+                      }}
+                    >
+                      <LogIn className="h-4 w-4 mr-2" />
+                      Sign In to Save Data
+                    </Button>
+                  )}
+                  
+                  {/* For Local Users: Show Sign In to Sync option */}
+                  {isLocalUser && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="w-full justify-start mb-1"
+                      onClick={async () => {
+                        setShowUserMenu(false);
+                        try {
+                          await signInWithGoogle();
+                        } catch (error) {
+                          console.error('Error signing in:', error);
+                        }
+                      }}
+                    >
+                      <LogIn className="h-4 w-4 mr-2" />
+                      Sign In to Sync
+                    </Button>
+                  )}
                   
                   <Button variant="ghost" size="sm" className="w-full justify-start">
                     <Settings className="h-4 w-4 mr-2" />
                     Settings
                   </Button>
-                  
+                    {/* Different button text/actions based on user type */}
                   <Button 
                     variant="ghost" 
                     size="sm" 
                     className="w-full justify-start text-destructive hover:text-destructive"
-                    onClick={signOut}
+                    onClick={() => {
+                      setShowUserMenu(false);
+                      signOut();
+                    }}
                   >
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Sign Out
+                    {isGuest || isLocalUser ? (
+                      <Trash2 className="h-4 w-4 mr-2" />
+                    ) : (
+                      <LogOut className="h-4 w-4 mr-2" />
+                    )}
+                    {isGuest ? 'Clear Data & Start Fresh' : isLocalUser ? 'Clear Local Data' : 'Sign Out'}
                   </Button>
                 </div>
               </Card>

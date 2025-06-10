@@ -8,8 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useSprintStore, useUserProgressStore } from '@/stores';
 import { useOptimisticTasks } from '@/hooks/useDataSync';
-import { Sprint, UserProgress, TaskStatus } from '@/types';
-import { 
+import {
   ArrowLeft, 
   Calendar, 
   CheckCircle2, 
@@ -27,7 +26,6 @@ import Link from 'next/link';
 export default function SprintPage() {
   const { id } = useParams();
   const { user } = useAuth();
-  const router = useRouter();
   const { loadSprint, sprints } = useSprintStore();
   const { userProgress, loadUserProgress } = useUserProgressStore();
   const { toggleTask, isUpdating } = useOptimisticTasks();
@@ -60,7 +58,7 @@ export default function SprintPage() {
     };
 
     loadSprintData();
-  }, [user, id]);  const handleAddTask = async (dayId: string, taskType: 'core' | 'special') => {
+  }, [user, id, loadSprint, loadUserProgress]);  const handleAddTask = async (dayId: string, taskType: 'core' | 'special') => {
     if (!sprint || !newTaskTitle.trim()) return;
 
     const updatedSprint = { ...sprint };
@@ -114,27 +112,7 @@ export default function SprintPage() {
       ts => ts.dayId === dayId && ts.completed
     ).length;
     
-    return Math.round((completedTasks / totalTasks) * 100);
-  };
-
-  const handleNewTaskSubmit = async () => {
-    if (!user || !sprint || !newTaskTitle || !newTaskCategory) return;
-
-    try {
-      setLoading(true);
-      // Here you would typically call a function to add the new task to the database
-      // For example: await addTaskToDay(user.uid, sprint.id, dayId, newTask);
-      
-      // After successful addition, you might want to refetch the sprint data or update the local state
-      setNewTaskTitle('');
-      setNewTaskCategory('');
-      setShowAddTask(null);
-    } catch (error) {
-      console.error('Error adding new task:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    return Math.round((completedTasks / totalTasks) * 100);  };
 
   if (loading) {
     return (
@@ -262,9 +240,8 @@ export default function SprintPage() {
                 {/* Core Tasks */}
                 <div>
                   <h4 className="text-sm font-medium text-muted-foreground mb-2">Core Tasks</h4>
-                  <div className="space-y-2">
-                    {day.coreTasks.map((task, index) => {
-                      const isCompleted = getTaskStatus(day.day, 'core', index);                      const taskKey = `${day.day}-core-${index}`;
+                  <div className="space-y-2">                    {day.coreTasks.map((task, index) => {
+                      const isCompleted = getTaskStatus(day.day, 'core', index);
                       const isTaskUpdating = isUpdating(day.day, 'core', index);
                       
                       return (
@@ -346,7 +323,6 @@ export default function SprintPage() {
                   <h4 className="text-sm font-medium text-muted-foreground mb-2">Special Tasks</h4>
                   <div className="space-y-2">                    {day.specialTasks.map((task, index) => {
                       const isCompleted = getTaskStatus(day.day, 'special', index);
-                      const taskKey = `${day.day}-special-${index}`;
                       const isTaskUpdating = isUpdating(day.day, 'special', index);
                       
                       return (
