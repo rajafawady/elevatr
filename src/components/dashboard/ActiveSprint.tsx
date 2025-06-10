@@ -2,16 +2,17 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Sprint } from '@/types';
+import { Sprint, UserProgress } from '@/types';
 import { Calendar, CheckCircle, Clock, Play } from 'lucide-react';
 import { calculateProgress, getDaysRemaining } from '@/lib/utils';
 import Link from 'next/link';
 
 interface ActiveSprintProps {
   sprint: Sprint | null;
+  userProgress?: UserProgress | null;
 }
 
-export function ActiveSprint({ sprint }: ActiveSprintProps) {
+export function ActiveSprint({ sprint, userProgress }: ActiveSprintProps) {
   if (!sprint) {
     return (
       <Card>
@@ -35,7 +36,7 @@ export function ActiveSprint({ sprint }: ActiveSprintProps) {
         </CardContent>
       </Card>
     );
-  }  const progressData = calculateProgress(sprint);
+  }  const progressData = calculateProgress(sprint, userProgress);
   const daysRemaining = getDaysRemaining(sprint.endDate);
   
   // Calculate total tasks from core and special tasks
@@ -43,8 +44,11 @@ export function ActiveSprint({ sprint }: ActiveSprintProps) {
     acc + day.coreTasks.length + day.specialTasks.length, 0
   );
   
-  // For now, we'll show 0 completed tasks since we need task status data
-  const completedTasks = 0;
+  // Calculate completed tasks using user progress data
+  let completedTasks = 0;
+  if (userProgress && userProgress.taskStatuses) {
+    completedTasks = userProgress.taskStatuses.filter(ts => ts.completed).length;
+  }
 
   return (
     <Card>

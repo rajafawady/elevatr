@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { createSprint } from '@/services/firebase';
+import { useOptimisticSprints } from '@/hooks/useDataSync';
 import { Sprint } from '@/types';
 import { ArrowLeft, Upload, Plus, Calendar, Target } from 'lucide-react';
 import Link from 'next/link';
@@ -14,16 +14,13 @@ import Link from 'next/link';
 export default function NewSprintPage() {
   const { user } = useAuth();
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const { createSprint, loading, error } = useOptimisticSprints();
   const [sprintType, setSprintType] = useState<'15-day' | '30-day'>('15-day');
   const [sprintTitle, setSprintTitle] = useState('');
-  const [sprintDescription, setSprintDescription] = useState('');
-  const handleCreateSprint = async () => {
+  const [sprintDescription, setSprintDescription] = useState('');  const handleCreateSprint = async () => {
     if (!user || !sprintTitle.trim()) return;
 
     try {
-      setLoading(true);
-      
       // Use uploaded data if available, otherwise create basic structure
       let days;
       if (uploadedSprintData && Array.isArray(uploadedSprintData)) {
@@ -37,18 +34,23 @@ export default function NewSprintPage() {
             return date.toISOString().split('T')[0];
           })(),
         }));      } else {
-        // Create empty days structure for manual task entry
+        // Create days structure with default tasks for manual entry
         days = Array.from({ length: sprintType === '15-day' ? 15 : 30 }, (_, i) => {
           const date = new Date();
           date.setDate(date.getDate() + i);
           return {
             day: `Day ${i + 1}`,
             date: date.toISOString().split('T')[0], // YYYY-MM-DD format
-            coreTasks: [],
-            specialTasks: [],
+            coreTasks: [
+              { category: 'Learning', description: 'Complete daily learning activity' },
+              { category: 'Networking', description: 'Connect with one professional contact' }
+            ],
+            specialTasks: [
+              'Review and plan next day activities'
+            ],
           };
         });
-      }const sprintData: Omit<Sprint, 'id' | 'createdAt' | 'updatedAt'> = {
+      }      const sprintData: Omit<Sprint, 'id' | 'createdAt' | 'updatedAt'> = {
         title: sprintTitle,
         description: sprintDescription,
         userId: user.uid,
@@ -62,13 +64,11 @@ export default function NewSprintPage() {
         days,
       };
 
-      const sprintId = await createSprint(user.uid, sprintData);
+      const sprintId = await createSprint(sprintData);
       router.push(`/sprint/${sprintId}`);
     } catch (error) {
       console.error('Error creating sprint:', error);
       alert('Error creating sprint. Please try again.');
-    } finally {
-      setLoading(false);
     }
   };
   const [uploadedSprintData, setUploadedSprintData] = useState<any>(null);
@@ -285,22 +285,20 @@ export default function NewSprintPage() {
                       {uploadedSprintData ? `${uploadedSprintData.length} days` : 
                        sprintType === '15-day' ? '15 days' : '30 days'}
                     </span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm mt-2">
+                  </div>                  <div className="flex items-center justify-between text-sm mt-2">
                     <span>Total Tasks:</span>
                     <span className="font-medium">
                       {uploadedSprintData ? 
                         uploadedSprintData.reduce((acc: number, day: any) => 
                           acc + (day.coreTasks?.length || 0) + (day.specialTasks?.length || 0), 0
                         ) + ' tasks' :
-                        `${(sprintType === '15-day' ? 15 : 30) * 3} tasks`
+                        `${(sprintType === '15-day' ? 15 : 30) * 3} tasks (default)`
                       }
                     </span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm mt-2">
+                  </div><div className="flex items-center justify-between text-sm mt-2">
                     <span>Daily Structure:</span>
                     <span className="font-medium">
-                      {uploadedSprintData ? 'Custom from file' : '2 Core + 1 Special'}
+                      {uploadedSprintData ? 'Custom from file' : '2 Core + 1 Special (Default)'}
                     </span>
                   </div>
                   {uploadedSprintData && (

@@ -93,13 +93,21 @@ export const calculateStreak = (dates: Date[]): number => {
 };
 
 // Sprint utilities
-export const calculateProgress = (sprint: any): { completedTasks: number; totalTasks: number; percentage: number } => {
+export const calculateProgress = (
+  sprint: any, 
+  userProgress?: any
+): { completedTasks: number; totalTasks: number; percentage: number } => {
   let completedTasks = 0;
   let totalTasks = 0;
   
   sprint.days.forEach((day: any) => {
     totalTasks += day.coreTasks.length + day.specialTasks.length;
   });
+  
+  // Calculate completed tasks if user progress is provided
+  if (userProgress && userProgress.taskStatuses) {
+    completedTasks = userProgress.taskStatuses.filter((ts: any) => ts.completed).length;
+  }
   
   const percentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
   

@@ -6,7 +6,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { getSprint, getUserProgress, updateTaskStatus } from '@/services/firebase';
+import { useSprintStore, useUserProgressStore } from '@/stores';
+import { useOptimisticTasks } from '@/hooks/useDataSync';
 import { Sprint, UserProgress, TaskStatus } from '@/types';
 import { 
   ArrowLeft, 
@@ -17,7 +18,9 @@ import {
   TrendingUp,
   BookOpen,
   Award,
-  Clock
+  Clock,
+  Plus,
+  X
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -25,10 +28,17 @@ export default function SprintPage() {
   const { id } = useParams();
   const { user } = useAuth();
   const router = useRouter();
-  const [sprint, setSprint] = useState<Sprint | null>(null);
-  const [userProgress, setUserProgress] = useState<UserProgress | null>(null);
+  const { loadSprint, sprints } = useSprintStore();
+  const { userProgress, loadUserProgress } = useUserProgressStore();
+  const { toggleTask, isUpdating } = useOptimisticTasks();
+  
   const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState<string | null>(null);
+  const [showAddTask, setShowAddTask] = useState<{ dayId: string; taskType: 'core' | 'special' } | null>(null);
+  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [newTaskCategory, setNewTaskCategory] = useState('');
+
+  // Get sprint from store
+  const sprint = sprints.find(s => s.id === id) || null;
 
   useEffect(() => {
     const loadSprintData = async () => {
@@ -36,13 +46,12 @@ export default function SprintPage() {
 
       try {
         setLoading(true);
-        const [sprintData, progressData] = await Promise.all([
-          getSprint(id as string),
-          getUserProgress(user.uid, id as string),
-        ]);
-
-        setSprint(sprintData);
-        setUserProgress(progressData);
+        
+        // Load sprint and user progress
+        const sprintData = await loadSprint(id as string);
+        if (sprintData && user) {
+          await loadUserProgress(user.uid, sprintData.id);
+        }
       } catch (error) {
         console.error('Error loading sprint data:', error);
       } finally {
@@ -51,50 +60,37 @@ export default function SprintPage() {
     };
 
     loadSprintData();
-  }, [user, id]);
-  const handleTaskToggle = async (dayId: string, taskType: 'core' | 'special', taskIndex: number, currentStatus: boolean) => {
-    if (!user || !sprint) return;
+  }, [user, id]);  const handleAddTask = async (dayId: string, taskType: 'core' | 'special') => {
+    if (!sprint || !newTaskTitle.trim()) return;
 
-    const taskKey = `${dayId}-${taskType}-${taskIndex}`;
-    setUpdating(taskKey);
+    const updatedSprint = { ...sprint };
+    const dayIndex = updatedSprint.days.findIndex(d => d.day === dayId);
+    
+    if (dayIndex === -1) return;
 
-    try {
-      const taskStatus: TaskStatus = {
-        dayId,
-        taskType,
-        taskIndex,
-        completed: !currentStatus,
-        completedAt: !currentStatus ? new Date().toISOString() : null,
-        updatedAt: new Date(),
-      };
-
-      await updateTaskStatus(user.uid, sprint.id, taskStatus);
-
-      // Update local state
-      setUserProgress(prev => {
-        if (!prev) return prev;
-        
-        const existingIndex = prev.taskStatuses.findIndex(
-          ts => ts.dayId === dayId && ts.taskType === taskType && ts.taskIndex === taskIndex
-        );
-
-        const newTaskStatuses = [...prev.taskStatuses];
-        if (existingIndex >= 0) {
-          newTaskStatuses[existingIndex] = taskStatus;
-        } else {
-          newTaskStatuses.push(taskStatus);
-        }
-
-        return {
-          ...prev,
-          taskStatuses: newTaskStatuses,
-        };
+    if (taskType === 'core') {
+      updatedSprint.days[dayIndex].coreTasks.push({
+        category: newTaskCategory || 'General',
+        description: newTaskTitle.trim()
       });
-    } catch (error) {
-      console.error('Error updating task status:', error);
-    } finally {
-      setUpdating(null);
+    } else {
+      updatedSprint.days[dayIndex].specialTasks.push(newTaskTitle.trim());
     }
+
+    setNewTaskTitle('');
+    setNewTaskCategory('');
+    setShowAddTask(null);
+
+    // Update sprint in store
+    try {
+      const { updateSprintOptimistic } = useSprintStore.getState();
+      await updateSprintOptimistic(sprint.id, { days: updatedSprint.days });
+    } catch (error) {
+      console.error('Error updating sprint:', error);
+    }
+  };
+  const handleTaskToggle = async (dayId: string, taskType: 'core' | 'special', taskIndex: number, currentStatus: boolean) => {
+    await toggleTask(dayId, taskType, taskIndex, currentStatus);
   };
 
   const getTaskStatus = (dayId: string, taskType: 'core' | 'special', taskIndex: number): boolean => {
@@ -119,6 +115,25 @@ export default function SprintPage() {
     ).length;
     
     return Math.round((completedTasks / totalTasks) * 100);
+  };
+
+  const handleNewTaskSubmit = async () => {
+    if (!user || !sprint || !newTaskTitle || !newTaskCategory) return;
+
+    try {
+      setLoading(true);
+      // Here you would typically call a function to add the new task to the database
+      // For example: await addTaskToDay(user.uid, sprint.id, dayId, newTask);
+      
+      // After successful addition, you might want to refetch the sprint data or update the local state
+      setNewTaskTitle('');
+      setNewTaskCategory('');
+      setShowAddTask(null);
+    } catch (error) {
+      console.error('Error adding new task:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading) {
@@ -249,44 +264,90 @@ export default function SprintPage() {
                   <h4 className="text-sm font-medium text-muted-foreground mb-2">Core Tasks</h4>
                   <div className="space-y-2">
                     {day.coreTasks.map((task, index) => {
-                      const isCompleted = getTaskStatus(day.day, 'core', index);
-                      const taskKey = `${day.day}-core-${index}`;
-                      const isUpdating = updating === taskKey;
+                      const isCompleted = getTaskStatus(day.day, 'core', index);                      const taskKey = `${day.day}-core-${index}`;
+                      const isTaskUpdating = isUpdating(day.day, 'core', index);
                       
                       return (
-                        <div key={index} className="flex items-center gap-2">
-                          <Button
+                        <div key={index} className="flex items-center gap-2">                          <Button
                             variant="ghost"
                             size="icon"
                             className="h-6 w-6 p-0"
                             onClick={() => handleTaskToggle(day.day, 'core', index, isCompleted)}
-                            disabled={isUpdating}
+                            disabled={isTaskUpdating}
                           >
-                            {isUpdating ? (
-                              <LoadingSpinner size="sm" />
+                            {isTaskUpdating ? (
+                              <div className="relative">
+                                <LoadingSpinner size="sm" />
+                                <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                              </div>
                             ) : isCompleted ? (
                               <CheckCircle2 className="h-4 w-4 text-green-500" />
                             ) : (
                               <Circle className="h-4 w-4" />
                             )}
-                          </Button>
-                          <span className={`text-sm ${isCompleted ? 'line-through text-muted-foreground' : ''}`}>
+                          </Button><span className={`text-sm ${isCompleted ? 'line-through text-muted-foreground' : ''}`}>
                             {task.category}: {task.description}
                           </span>
                         </div>
                       );
                     })}
+                    
+                    {/* Add Core Task */}
+                    {showAddTask?.dayId === day.day && showAddTask?.taskType === 'core' ? (
+                      <div className="space-y-2 p-2 border rounded-md">                        <input
+                          type="text"
+                          placeholder="Task category (e.g., Learning, Networking)"
+                          value={newTaskCategory}
+                          onChange={(e) => setNewTaskCategory(e.target.value)}
+                          className="w-full p-2 text-sm border border-border rounded bg-card text-card-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                          autoFocus
+                        />
+                        <input
+                          type="text"
+                          placeholder="Task description"
+                          value={newTaskTitle}
+                          onChange={(e) => setNewTaskTitle(e.target.value)}
+                          className="w-full p-2 text-sm border border-border rounded bg-card text-card-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                          onKeyPress={(e) => e.key === 'Enter' && handleAddTask(day.day, 'core')}
+                        />
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm" 
+                            onClick={() => handleAddTask(day.day, 'core')}
+                            disabled={!newTaskTitle.trim()}
+                          >
+                            Add
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            onClick={() => setShowAddTask(null)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full justify-start text-muted-foreground"
+                        onClick={() => setShowAddTask({ dayId: day.day, taskType: 'core' })}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Core Task
+                      </Button>
+                    )}
                   </div>
                 </div>
 
                 {/* Special Tasks */}
                 <div>
                   <h4 className="text-sm font-medium text-muted-foreground mb-2">Special Tasks</h4>
-                  <div className="space-y-2">
-                    {day.specialTasks.map((task, index) => {
+                  <div className="space-y-2">                    {day.specialTasks.map((task, index) => {
                       const isCompleted = getTaskStatus(day.day, 'special', index);
                       const taskKey = `${day.day}-special-${index}`;
-                      const isUpdating = updating === taskKey;
+                      const isTaskUpdating = isUpdating(day.day, 'special', index);
                       
                       return (
                         <div key={index} className="flex items-center gap-2">
@@ -295,22 +356,63 @@ export default function SprintPage() {
                             size="icon"
                             className="h-6 w-6 p-0"
                             onClick={() => handleTaskToggle(day.day, 'special', index, isCompleted)}
-                            disabled={isUpdating}
-                          >
-                            {isUpdating ? (
-                              <LoadingSpinner size="sm" />
+                            disabled={isTaskUpdating}                          >
+                            {isTaskUpdating ? (
+                              <div className="relative">
+                                <LoadingSpinner size="sm" />
+                                <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                              </div>
                             ) : isCompleted ? (
                               <CheckCircle2 className="h-4 w-4 text-green-500" />
                             ) : (
                               <Circle className="h-4 w-4" />
                             )}
-                          </Button>
-                          <span className={`text-sm ${isCompleted ? 'line-through text-muted-foreground' : ''}`}>
+                          </Button>                          <span className={`text-sm ${isCompleted ? 'line-through text-muted-foreground' : ''}`}>
                             {task}
                           </span>
                         </div>
                       );
                     })}
+                    
+                    {/* Add Special Task */}
+                    {showAddTask?.dayId === day.day && showAddTask?.taskType === 'special' ? (
+                      <div className="space-y-2 p-2 border rounded-md">                        <input
+                          type="text"
+                          placeholder="Special task description"
+                          value={newTaskTitle}
+                          onChange={(e) => setNewTaskTitle(e.target.value)}
+                          className="w-full p-2 text-sm border border-border rounded bg-card text-card-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                          autoFocus
+                          onKeyPress={(e) => e.key === 'Enter' && handleAddTask(day.day, 'special')}
+                        />
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm" 
+                            onClick={() => handleAddTask(day.day, 'special')}
+                            disabled={!newTaskTitle.trim()}
+                          >
+                            Add
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            onClick={() => setShowAddTask(null)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full justify-start text-muted-foreground"
+                        onClick={() => setShowAddTask({ dayId: day.day, taskType: 'special' })}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Special Task
+                      </Button>
+                    )}
                   </div>
                 </div>
 

@@ -1,47 +1,36 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { StatsOverview } from '@/components/dashboard/StatsOverview';
 import { ActiveSprint } from '@/components/dashboard/ActiveSprint';
 import { QuickActions } from '@/components/dashboard/QuickActions';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
-import { getUserProgress, getActiveSprint } from '@/services/firebase';
-import { UserProgress, Sprint } from '@/types';
+import { TodayJournal } from '@/components/dashboard/TodayJournal';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { useSprintStore, useUserProgressStore, useAppStore } from '@/stores';
 
 export function Dashboard() {
   const { user } = useAuth();
-  const [userProgress, setUserProgress] = useState<UserProgress | null>(null);
-  const [activeSprint, setActiveSprint] = useState<Sprint | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { activeSprint, loading: sprintLoading, loadActiveSprint } = useSprintStore();
+  const { userProgress, loading: progressLoading, loadUserProgress } = useUserProgressStore();
+  const { globalLoading } = useAppStore();
+
+  // Load data when component mounts or user changes
   useEffect(() => {
-    const loadDashboardData = async () => {
-      if (!user) return;
+    if (user?.uid) {
+      loadActiveSprint(user.uid);
+    }
+  }, [user?.uid, loadActiveSprint]);
 
-      try {
-        setLoading(true);
-        
-        // First get the active sprint
-        const sprint = await getActiveSprint(user.uid);
-        setActiveSprint(sprint);
-        
-        // Then get the user progress for that sprint
-        if (sprint) {
-          const progress = await getUserProgress(user.uid, sprint.id);
-          setUserProgress(progress);
-        } else {
-          setUserProgress(null);
-        }
-      } catch (error) {
-        console.error('Error loading dashboard data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  useEffect(() => {
+    if (user?.uid && activeSprint?.id) {
+      loadUserProgress(user.uid, activeSprint.id);
+    }
+  }, [user?.uid, activeSprint?.id, loadUserProgress]);
 
-    loadDashboardData();
-  }, [user]);
+  const loading = sprintLoading || progressLoading || globalLoading;
+  
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -69,12 +58,13 @@ export function Dashboard() {
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Left Column - Active Sprint & Quick Actions */}
         <div className="lg:col-span-2 space-y-6">
-          <ActiveSprint sprint={activeSprint} />
+          <ActiveSprint sprint={activeSprint} userProgress={userProgress} />
           <QuickActions />
         </div>
 
-        {/* Right Column - Recent Activity */}
-        <div>
+        {/* Right Column - Today's Journal & Recent Activity */}
+        <div className="space-y-6">
+          <TodayJournal userId={user?.uid || ''} />
           <RecentActivity userId={user?.uid || ''} />
         </div>
       </div>

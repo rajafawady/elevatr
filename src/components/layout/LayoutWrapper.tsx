@@ -2,6 +2,8 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import { AppLayout } from './AppLayout';
+import { OptimisticStateIndicator } from '@/components/ui/OptimisticStateIndicator';
+import { PerformanceIndicator } from '@/components/ui/PerformanceIndicator';
 import { usePathname } from 'next/navigation';
 
 interface LayoutWrapperProps {
@@ -15,9 +17,14 @@ export function LayoutWrapper({ children }: LayoutWrapperProps) {
   // Don't show AppLayout on login page or when loading
   const isLoginPage = pathname === '/' && !user;
   const shouldShowAppLayout = user && !loading && !isLoginPage;
-  
   if (shouldShowAppLayout) {
-    return <AppLayout>{children}</AppLayout>;
+    return (
+      <AppLayout>
+        <OptimisticStateIndicator />
+        {process.env.NODE_ENV === 'development' && <PerformanceIndicator />}
+        {children}
+      </AppLayout>
+    );
   }
   
   return <>{children}</>;

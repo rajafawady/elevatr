@@ -12,7 +12,7 @@ import {
   Zap
 } from 'lucide-react';
 import { Sprint, Task } from '@/types';
-import { getSprintsByUser, getTasksByUser } from '@/services/firebase';
+import { useSprintStore, useTaskStore } from '@/stores';
 import { format, subDays, eachDayOfInterval, isAfter } from 'date-fns';
 
 // Utility function to safely convert Firebase Timestamp to Date
@@ -44,47 +44,36 @@ interface DailyProgress {
 
 export default function ProgressPage() {
   const { user } = useAuth();
-  const [loading, setLoading] = useState(true);
+  const { sprints, loading: sprintLoading } = useSprintStore();
+  const { tasks, loading: taskLoading } = useTaskStore();
   const [stats, setStats] = useState<ProgressStats | null>(null);
   const [dailyProgress, setDailyProgress] = useState<DailyProgress[]>([]);
   const [recentSprints, setRecentSprints] = useState<Sprint[]>([]);
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('30d');
 
+  const loading = sprintLoading || taskLoading;
+
   useEffect(() => {
-    if (user) {
+    if (sprints.length > 0 && tasks.length > 0) {
       loadProgressData();
     }
-  }, [user, timeRange]);
+  }, [sprints, tasks, timeRange]);
 
   const loadProgressData = async () => {
-    if (!user) return;
+    // Calculate statistics
+    const progressStats = calculateStats(sprints, tasks);
+    setStats(progressStats);
 
-    try {
-      const [sprints, tasks] = await Promise.all([
-        getSprintsByUser(user.uid),
-        getTasksByUser(user.uid)
-      ]);
+    // Calculate daily progress
+    const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90;
+    const daily = calculateDailyProgress(tasks, days);
+    setDailyProgress(daily);
 
-      // Calculate statistics
-      const progressStats = calculateStats(sprints, tasks);
-      setStats(progressStats);
-
-      // Calculate daily progress
-      const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90;
-      const daily = calculateDailyProgress(tasks, days);
-      setDailyProgress(daily);
-
-      // Get recent sprints
-      const recent = sprints
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-        .slice(0, 5);
-      setRecentSprints(recent);
-
-    } catch (error) {
-      console.error('Error loading progress data:', error);
-    } finally {
-      setLoading(false);
-    }
+    // Get recent sprints
+    const recent = sprints
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 5);
+    setRecentSprints(recent);
   };
 
   const calculateStats = (sprints: Sprint[], tasks: Task[]): ProgressStats => {

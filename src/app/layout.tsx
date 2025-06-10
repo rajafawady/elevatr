@@ -5,6 +5,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { LayoutWrapper } from "@/components/layout/LayoutWrapper";
+import { DataProvider } from "@/components/providers/DataProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -53,9 +54,11 @@ export default function RootLayout({
         <ThemeProvider>
           <AuthProvider>
             <NotificationProvider>
-              <LayoutWrapper>
-                {children}
-              </LayoutWrapper>
+              <DataProvider>
+                <LayoutWrapper>
+                  {children}
+                </LayoutWrapper>
+              </DataProvider>
             </NotificationProvider>
           </AuthProvider>
         </ThemeProvider>

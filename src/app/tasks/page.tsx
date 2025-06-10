@@ -8,13 +8,13 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Plus, CheckCircle, Clock, AlertCircle, Filter } from 'lucide-react';
 import { Task, TaskPriority } from '@/types';
-import { getTasksByUser, updateTask } from '@/services/firebase';
+import { useTaskStore } from '@/stores';
 import { format } from 'date-fns';
 
 export default function TasksPage() {
   const { user } = useAuth();
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);  const [filter, setFilter] = useState<'all' | 'active' | 'completed' | 'blocked'>('all');
+  const { tasks, loading, updateTaskOptimistic } = useTaskStore();
+  const [filter, setFilter] = useState<'all' | 'active' | 'completed' | 'blocked'>('all');
   const [priorityFilter, setPriorityFilter] = useState<TaskPriority | 'all'>('all');
 
   // Helper function to convert Date or Timestamp to Date
@@ -27,53 +27,25 @@ export default function TasksPage() {
     }
     return new Date(dateValue);
   };
-
-  useEffect(() => {
-    if (user) {
-      loadTasks();
-    }
-  }, [user]);
-
-  const loadTasks = async () => {
-    if (!user) return;
-    
-    try {
-      const userTasks = await getTasksByUser(user.uid);
-      setTasks(userTasks);
-    } catch (error) {
-      console.error('Error loading tasks:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
   const handleToggleTask = async (task: Task) => {
     if (!user) return;
 
     const newStatus: 'active' | 'completed' | 'blocked' = task.status === 'completed' ? 'active' : 'completed';
-    const updatedTask: Task = {
-      ...task,
-      status: newStatus,
-      completedAt: newStatus === 'completed' ? new Date() : null,
-      updatedAt: new Date()
-    };
 
     try {
-      await updateTask(task.id, {
+      await updateTaskOptimistic(task.id, {
         status: newStatus,
-        completedAt: updatedTask.completedAt,
-        updatedAt: updatedTask.updatedAt
+        completedAt: newStatus === 'completed' ? new Date() : null,
       });
-      setTasks(tasks.map(t => t.id === task.id ? updatedTask : t));
     } catch (error) {
       console.error('Error updating task:', error);
     }
   };
-
-  const filteredTasks = tasks.filter(task => {
-    const statusMatch = filter === 'all' || task.status === filter;
-    const priorityMatch = priorityFilter === 'all' || task.priority === priorityFilter;
-    return statusMatch && priorityMatch;
-  });  const getStatusIcon = (status: 'active' | 'completed' | 'blocked') => {
+  const filteredTasks = tasks.filter((task: Task) => {
+    if (filter !== 'all' && task.status !== filter) return false;
+    if (priorityFilter !== 'all' && task.priority !== priorityFilter) return false;
+    return true;
+  });const getStatusIcon = (status: 'active' | 'completed' | 'blocked') => {
     switch (status) {
       case 'completed': return <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />;
       case 'active': return <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />;
@@ -158,9 +130,8 @@ export default function TasksPage() {
           <Card className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Active</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {tasks.filter(t => t.status === 'active').length}
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Active</p>                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {tasks.filter((t: Task) => t.status === 'active').length}
                 </p>
               </div>
               <div className="p-2 bg-yellow-100 dark:bg-yellow-900 rounded-full">
@@ -171,9 +142,8 @@ export default function TasksPage() {
           <Card className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Completed</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {tasks.filter(t => t.status === 'completed').length}
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Completed</p>                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {tasks.filter((t: Task) => t.status === 'completed').length}
                 </p>
               </div>
               <div className="p-2 bg-green-100 dark:bg-green-900 rounded-full">
@@ -184,9 +154,8 @@ export default function TasksPage() {
           <Card className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Blocked</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {tasks.filter(t => t.status === 'blocked').length}
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Blocked</p>                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {tasks.filter((t: Task) => t.status === 'blocked').length}
                 </p>
               </div>
               <div className="p-2 bg-red-100 dark:bg-red-900 rounded-full">
@@ -205,9 +174,8 @@ export default function TasksPage() {
                 <Plus className="w-4 h-4 mr-2" />
                 Create your first task
               </Button>
-            </Card>
-          ) : (
-            filteredTasks.map((task) => (
+            </Card>          ) : (
+            filteredTasks.map((task: Task) => (
               <Card key={task.id} className="p-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start space-x-3 flex-1">
