@@ -3,17 +3,16 @@
 
 import { useState } from 'react';
 import { ElevatrButton } from '@/components/ui/ElevatrButton';
-import { ElevatrCard } from '@/components/ui/ElevatrCard';
+import { ElevatrCard, ElevatrCardHeader, ElevatrCardContent } from '@/components/ui/ElevatrCard';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { 
   LogOut, 
   Trash2, 
-  Download, 
   Save, 
   AlertTriangle,
-  Database,
   Shield,
-  RotateCcw
+  RotateCcw,
+  X
 } from 'lucide-react';
 
 interface LogoutOptionsProps {
@@ -56,7 +55,6 @@ export function LogoutOptions({
       icon: RotateCcw,
       title: 'Continue as Guest',
       description: 'Keep your current progress and continue working locally',
-      color: 'blue',
       recommended: true
     },
     {
@@ -64,7 +62,6 @@ export function LogoutOptions({
       icon: Save,
       title: 'Keep Data for Later',
       description: 'Save your progress for when you sign in again',
-      color: 'green',
       recommended: false
     },
     {
@@ -72,107 +69,131 @@ export function LogoutOptions({
       icon: Trash2,
       title: 'Delete All Data',
       description: 'Remove all progress from this device',
-      color: 'red',
       recommended: false
     }
   ];
-  return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-      <ElevatrCard className="w-full max-w-md max-h-[95dvh] sm:max-h-[80vh] flex flex-col overflow-hidden p-2 sm:p-6 bg-white dark:bg-gray-900 border border-blue-200 dark:border-blue-800 shadow-xl">
-        <div className="elevatr-card-header flex-shrink-0">
-          <div className="flex items-center mb-4">
-            <div className="p-2 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 mr-3">
-              <LogOut className="w-6 h-6 text-primary dark:text-primary-300" />
-            </div>
-            <h2 className="text-lg font-semibold text-gray-200 dark:text-white">
-              Sign Out Options
-            </h2>
-          </div>
-        </div>
 
-        <div className="elevatr-card-content flex-1 overflow-y-auto min-h-0">
-          <div className="mb-6">
-            <div className="space-y-3">
-              {options.map((option, index) => {
-                const Icon = option.icon;
-                const isSelected = selectedOption === option.key;
-                const isCurrentlyLoading = isLoading && isSelected;
-                
-                const variantMap = {
-                  blue: 'primary',
-                  green: 'success', 
-                  red: 'destructive'
-                } as const;
-                
-                return (
-                  <ElevatrButton
-                    key={option.key}
-                    onClick={() => handleChoice(option.key)}
-                    disabled={isLoading}
-                    variant={variantMap[option.color as keyof typeof variantMap]}
-                    className={`w-full p-3 text-left h-auto elevatr-animate-fade-in bg-gray-100 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-lg transition-colors duration-150 focus:ring-2 focus:ring-primary/40 focus:outline-none text-sm ${
-                      isLoading && !isSelected ? 'opacity-50' : ''
-                    }`}
-                  >
-                    <div className="flex items-start">
-                      <div className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center mr-3 bg-background/50 dark:bg-gray-700">
-                        {isCurrentlyLoading ? (
-                          <LoadingSpinner size="sm" />
-                        ) : (
-                          <Icon className="w-5 h-5 text-gray-700 dark:text-gray-200" />
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <ElevatrCard 
+        variant="glass-strong" 
+        className="w-full max-w-md elevatr-animate-fade-in-scale"
+      >
+        <ElevatrCardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="p-2 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 mr-3">
+                <LogOut className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-foreground">
+                  Sign Out Options
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Choose what happens to your data
+                </p>
+              </div>
+            </div>
+            <ElevatrButton
+              onClick={onCancel}
+              variant="secondary"
+              size="sm"
+              className="p-2 w-8 h-8"
+              disabled={isLoading}
+            >
+              <X className="w-4 h-4" />
+            </ElevatrButton>
+          </div>
+        </ElevatrCardHeader>
+
+        <ElevatrCardContent>
+          <div className="space-y-3 mb-6">
+            {options.map((option, index) => {
+              const Icon = option.icon;
+              const isSelected = selectedOption === option.key;
+              const isCurrentlyLoading = isLoading && isSelected;
+              
+              return (
+                <div
+                  key={option.key}
+                  className={`relative p-4 rounded-lg border transition-all duration-300 cursor-pointer
+                             elevatr-hover-lift ${
+                               isSelected 
+                                 ? 'border-primary bg-primary/10' 
+                                 : 'border-border hover:border-primary/50'
+                             }
+                             ${isLoading && !isSelected ? 'opacity-50 cursor-not-allowed' : ''}
+                             ${index === 0 ? 'elevatr-animate-slide-in-right' : ''}
+                             ${index === 1 ? 'elevatr-animate-slide-in-left' : ''}
+                             ${index === 2 ? 'elevatr-animate-slide-in-right' : ''}`}
+                  style={{ animationDelay: `${index * 100}ms` }}
+                  onClick={() => !isLoading && handleChoice(option.key)}
+                >
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center mr-3">
+                      {isCurrentlyLoading ? (
+                        <LoadingSpinner size="sm" />
+                      ) : (
+                        <Icon className="w-5 h-5 text-primary" />
+                      )}
+                    </div>
+                    
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-1">
+                        <h3 className="font-medium text-foreground">
+                          {option.title}
+                        </h3>
+                        {option.recommended && (
+                          <span className="motivation-badge">
+                            Recommended
+                          </span>
                         )}
                       </div>
-                      <div className="flex-1">
-                        <div className="flex items-center">
-                          <h3 className="font-medium text-gray-900 dark:text-white text-base">
-                            {option.title}
-                          </h3>
-                          {option.recommended && (
-                            <span className="ml-2 px-2 py-1 text-xs font-medium bg-primary text-primary-foreground rounded-full">
-                              Recommended
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs mt-1 opacity-80 text-gray-700 dark:text-gray-300">
-                          {option.description}
-                        </p>
-                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {option.description}
+                      </p>
                     </div>
-                  </ElevatrButton>
-                );
-              })}
-            </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
+
           {error && (
-            <div className="mb-4 glass-panel border border-destructive/20 dark:border-destructive/40 bg-red-50 dark:bg-red-900/30 rounded-lg p-3">
+            <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg elevatr-animate-fade-in">
               <div className="flex items-start">
-                <AlertTriangle className="w-4 h-4 text-destructive dark:text-red-400 mr-2 mt-0.5 flex-shrink-0" />
-                <p className="text-sm text-destructive dark:text-red-200">{error}</p>
+                <AlertTriangle className="w-4 h-4 text-destructive mr-2 mt-0.5 flex-shrink-0" />
+                <div>
+                  <h4 className="font-medium text-destructive">Operation Failed</h4>
+                  <p className="text-sm text-destructive/80">{error}</p>
+                </div>
               </div>
             </div>
           )}
-        </div>
 
-        <div className="flex justify-end mb-4 flex-shrink-0">
-          <ElevatrButton
-            onClick={onCancel}
-            disabled={isLoading}
-            variant="secondary"
-            className="bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200"
-          >
-            Cancel
-          </ElevatrButton>
-        </div>
-
-        <div className="glass-panel rounded-lg p-3 bg-gray-50 dark:bg-gray-800/70 flex-shrink-0">
-          <div className="flex items-start">
-            <Shield className="w-4 h-4 text-muted-foreground dark:text-gray-400 mr-2 mt-0.5 flex-shrink-0" />
-            <p className="text-xs text-muted-foreground dark:text-gray-300">
-              <strong>Privacy Note:</strong> Your data is stored locally on this device. 
-              Only you can access it, and it won&apos;t be shared with anyone else.
-            </p>
+          <div className="flex justify-end mb-4">
+            <ElevatrButton
+              onClick={onCancel}
+              disabled={isLoading}
+              variant="secondary"
+            >
+              Cancel
+            </ElevatrButton>
           </div>
-        </div>
+
+          <div className="glass-panel rounded-lg p-3">
+            <div className="flex items-start">
+              <Shield className="w-4 h-4 text-accent mr-2 mt-0.5 flex-shrink-0" />
+              <div>
+                <h4 className="font-medium text-foreground text-sm mb-1">Privacy Protection</h4>
+                <p className="text-xs text-muted-foreground">
+                  Your data is stored locally on this device. Only you can access it, 
+                  and it won&apos;t be shared with anyone else.
+                </p>
+              </div>
+            </div>
+          </div>
+        </ElevatrCardContent>
       </ElevatrCard>
     </div>
   );
