@@ -57,9 +57,8 @@ export function TodayJournal() {
           <ElevatrCardTitle className="flex items-center gap-3">
             <div className="p-2 rounded-lg elevatr-gradient-journal">
               <BookOpen className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <div className="text-lg font-bold">Today's Journal</div>
+            </div>            <div>
+              <div className="text-lg font-bold">Today&apos;s Journal</div>
               <div className="text-sm text-muted-foreground font-normal">Loading...</div>
             </div>
           </ElevatrCardTitle>
@@ -84,9 +83,8 @@ export function TodayJournal() {
         <ElevatrCardHeader>
           <ElevatrCardTitle className="flex items-center gap-3">
             <div className="p-2 rounded-lg elevatr-gradient-journal">
-              <BookOpen className="h-5 w-5 text-white" />
-            </div>
-            Today's Journal
+              <BookOpen className="h-5 w-5 text-white" />            </div>
+            Today&apos;s Journal
           </ElevatrCardTitle>
         </ElevatrCardHeader>
         <ElevatrCardContent className="text-center py-6">
@@ -113,9 +111,8 @@ export function TodayJournal() {
         <ElevatrCardTitle className="flex items-center gap-3">
           <div className="p-2 rounded-lg elevatr-gradient-journal">
             <BookOpen className="h-5 w-5 text-white" />
-          </div>
-          <div>
-            <div className="text-lg font-bold">Today's Journal</div>
+          </div>          <div>
+            <div className="text-lg font-bold">Today&apos;s Journal</div>
             <div className="text-sm text-muted-foreground font-normal flex items-center gap-2">
               <ElevatrBadge variant="journal" size="sm">Day {currentDay}</ElevatrBadge>
               {new Date().toLocaleDateString('en-US', { 
@@ -141,10 +138,9 @@ export function TodayJournal() {
         {/* Journal Content */}
         {todayJournal ? (
           <div className="space-y-3">
-            <div className="glass-panel p-4">
-              <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+            <div className="glass-panel p-4">              <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-journal" />
-                Today's Reflection
+                Today&apos;s Reflection
               </h4>
               <p className="text-sm text-muted-foreground leading-relaxed mb-3">
                 {todayJournal.content.length > 150 
