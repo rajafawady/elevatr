@@ -2,8 +2,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
+import { ElevatrButton } from '@/components/ui/ElevatrButton';
+import { ElevatrCard } from '@/components/ui/ElevatrCard';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { 
   LogOut, 
@@ -76,139 +76,104 @@ export function LogoutOptions({
       recommended: false
     }
   ];
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <Card className="max-w-lg w-full p-6 bg-white dark:bg-gray-800">
-        <div className="flex items-center mb-4">
-          <LogOut className="w-6 h-6 text-gray-600 mr-2" />
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-            Sign Out Options
-          </h2>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+      <ElevatrCard className="w-full max-w-md max-h-[95dvh] sm:max-h-[80vh] flex flex-col overflow-hidden p-2 sm:p-6 bg-white dark:bg-gray-900 border border-blue-200 dark:border-blue-800 shadow-xl">
+        <div className="elevatr-card-header flex-shrink-0">
+          <div className="flex items-center mb-4">
+            <div className="p-2 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 mr-3">
+              <LogOut className="w-6 h-6 text-primary dark:text-primary-300" />
+            </div>
+            <h2 className="text-lg font-semibold text-gray-200 dark:text-white">
+              Sign Out Options
+            </h2>
+          </div>
         </div>
 
-        <div className="mb-6">
-          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-4">
-            <div className="flex items-start">
-              <AlertTriangle className="w-5 h-5 text-amber-600 mr-2 mt-0.5 flex-shrink-0" />
-              <div>
-                <h3 className="font-medium text-amber-900 dark:text-amber-100 mb-1">
-                  What would you like to do with your data?
-                </h3>
-                <p className="text-sm text-amber-700 dark:text-amber-300">
-                  {userDisplayName ? `Hi ${userDisplayName}, you're` : "You're"} signing out. 
-                  Choose what happens to your progress on this device.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            {options.map((option) => {
-              const Icon = option.icon;
-              const isSelected = selectedOption === option.key;
-              const isCurrentlyLoading = isLoading && isSelected;
-              
-              return (
-                <button
-                  key={option.key}
-                  onClick={() => handleChoice(option.key)}
-                  disabled={isLoading}
-                  className={`w-full p-4 text-left rounded-lg border-2 transition-all duration-200 ${
-                    option.color === 'blue'
-                      ? 'border-blue-200 hover:border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800'
-                      : option.color === 'green'
-                      ? 'border-green-200 hover:border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-800'
-                      : 'border-red-200 hover:border-red-300 bg-red-50 dark:bg-red-900/20 dark:border-red-800'
-                  } ${
-                    isLoading && !isSelected
-                      ? 'opacity-50 cursor-not-allowed'
-                      : 'hover:shadow-sm'
-                  }`}
-                >
-                  <div className="flex items-start">
-                    <div className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center mr-3 ${
-                      option.color === 'blue'
-                        ? 'bg-blue-100 dark:bg-blue-800'
-                        : option.color === 'green'
-                        ? 'bg-green-100 dark:bg-green-800'
-                        : 'bg-red-100 dark:bg-red-800'
-                    }`}>
-                      {isCurrentlyLoading ? (
-                        <LoadingSpinner size="sm" />
-                      ) : (
-                        <Icon className={`w-5 h-5 ${
-                          option.color === 'blue'
-                            ? 'text-blue-600'
-                            : option.color === 'green'
-                            ? 'text-green-600'
-                            : 'text-red-600'
-                        }`} />
-                      )}
-                    </div>
-                    
-                    <div className="flex-1">
-                      <div className="flex items-center">
-                        <h3 className={`font-medium ${
-                          option.color === 'blue'
-                            ? 'text-blue-900 dark:text-blue-100'
-                            : option.color === 'green'
-                            ? 'text-green-900 dark:text-green-100'
-                            : 'text-red-900 dark:text-red-100'
-                        }`}>
-                          {option.title}
-                        </h3>
-                        {option.recommended && (
-                          <span className="ml-2 px-2 py-1 text-xs font-medium bg-blue-600 text-white rounded-full">
-                            Recommended
-                          </span>
+        <div className="elevatr-card-content flex-1 overflow-y-auto min-h-0">
+          <div className="mb-6">
+            <div className="space-y-3">
+              {options.map((option, index) => {
+                const Icon = option.icon;
+                const isSelected = selectedOption === option.key;
+                const isCurrentlyLoading = isLoading && isSelected;
+                
+                const variantMap = {
+                  blue: 'primary',
+                  green: 'success', 
+                  red: 'destructive'
+                } as const;
+                
+                return (
+                  <ElevatrButton
+                    key={option.key}
+                    onClick={() => handleChoice(option.key)}
+                    disabled={isLoading}
+                    variant={variantMap[option.color as keyof typeof variantMap]}
+                    className={`w-full p-3 text-left h-auto elevatr-animate-fade-in bg-gray-100 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-lg transition-colors duration-150 focus:ring-2 focus:ring-primary/40 focus:outline-none text-sm ${
+                      isLoading && !isSelected ? 'opacity-50' : ''
+                    }`}
+                  >
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center mr-3 bg-background/50 dark:bg-gray-700">
+                        {isCurrentlyLoading ? (
+                          <LoadingSpinner size="sm" />
+                        ) : (
+                          <Icon className="w-5 h-5 text-gray-700 dark:text-gray-200" />
                         )}
                       </div>
-                      <p className={`text-sm mt-1 ${
-                        option.color === 'blue'
-                          ? 'text-blue-700 dark:text-blue-300'
-                          : option.color === 'green'
-                          ? 'text-green-700 dark:text-green-300'
-                          : 'text-red-700 dark:text-red-300'
-                      }`}>
-                        {option.description}
-                      </p>
+                      <div className="flex-1">
+                        <div className="flex items-center">
+                          <h3 className="font-medium text-gray-900 dark:text-white text-base">
+                            {option.title}
+                          </h3>
+                          {option.recommended && (
+                            <span className="ml-2 px-2 py-1 text-xs font-medium bg-primary text-primary-foreground rounded-full">
+                              Recommended
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs mt-1 opacity-80 text-gray-700 dark:text-gray-300">
+                          {option.description}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-            <div className="flex items-start">
-              <AlertTriangle className="w-4 h-4 text-red-500 mr-2 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+                  </ElevatrButton>
+                );
+              })}
             </div>
           </div>
-        )}
-
-        <div className="flex justify-end">
-          <Button
-            onClick={onCancel}
-            disabled={isLoading}
-            variant="outline"
-          >
-            Cancel
-          </Button>
+          {error && (
+            <div className="mb-4 glass-panel border border-destructive/20 dark:border-destructive/40 bg-red-50 dark:bg-red-900/30 rounded-lg p-3">
+              <div className="flex items-start">
+                <AlertTriangle className="w-4 h-4 text-destructive dark:text-red-400 mr-2 mt-0.5 flex-shrink-0" />
+                <p className="text-sm text-destructive dark:text-red-200">{error}</p>
+              </div>
+            </div>
+          )}
         </div>
 
-        <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+        <div className="flex justify-end mb-4 flex-shrink-0">
+          <ElevatrButton
+            onClick={onCancel}
+            disabled={isLoading}
+            variant="secondary"
+            className="bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200"
+          >
+            Cancel
+          </ElevatrButton>
+        </div>
+
+        <div className="glass-panel rounded-lg p-3 bg-gray-50 dark:bg-gray-800/70 flex-shrink-0">
           <div className="flex items-start">
-            <Shield className="w-4 h-4 text-gray-500 mr-2 mt-0.5 flex-shrink-0" />            <p className="text-xs text-gray-600 dark:text-gray-400">
+            <Shield className="w-4 h-4 text-muted-foreground dark:text-gray-400 mr-2 mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-muted-foreground dark:text-gray-300">
               <strong>Privacy Note:</strong> Your data is stored locally on this device. 
               Only you can access it, and it won&apos;t be shared with anyone else.
             </p>
           </div>
         </div>
-      </Card>
+      </ElevatrCard>
     </div>
   );
 }

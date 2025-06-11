@@ -35,13 +35,14 @@ export function useNavigation() {
       }
     }
   }, [pathname, navigation.currentRoute, setCurrentRoute, addToNavigationHistory, setNavigating]);
-
-  // Auto-close mobile menu on route change
+  // Auto-close mobile menu ONLY on route change (pathname), not when menu state changes
   useEffect(() => {
+    // Only run this if we're actually navigating to a new path
     if (navigation.mobileMenuOpen) {
       setMobileMenuOpen(false);
     }
-  }, [pathname, navigation.mobileMenuOpen, setMobileMenuOpen]);
+    // Removed navigation.mobileMenuOpen from dependencies to prevent infinite loop
+  }, [pathname, setMobileMenuOpen]);
   const navigateTo = useCallback((href: string, options?: { replace?: boolean }) => {
     if (href === pathname) return;
     

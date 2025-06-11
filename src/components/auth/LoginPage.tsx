@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
+import { ElevatrButton } from '@/components/ui/ElevatrButton';
+import { ElevatrCard } from '@/components/ui/ElevatrCard';
 import { LogIn, Trophy, Target, Calendar, BarChart3, User } from 'lucide-react';
 import { getAuthErrorMessage } from '@/lib/auth-utils';
 import { useGlobalErrorHandler } from '@/components/providers/ErrorProvider';
@@ -77,41 +77,38 @@ export function LoginPage() {
       title: 'Achievement System',
       description: 'Celebrate milestones and build momentum with our achievement tracking',
     },
-  ];
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 relative overflow-hidden">
+  ];  return (
+    <div className="min-h-screen elevatr-container relative overflow-hidden">
       {/* Background decorations */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-1/2 -right-1/2 w-full h-full bg-gradient-to-br from-primary/10 to-accent/10 rounded-full blur-3xl"></div>
         <div className="absolute -bottom-1/2 -left-1/2 w-full h-full bg-gradient-to-tr from-accent/10 to-primary/10 rounded-full blur-3xl"></div>
       </div>
       
-      <div className="container-responsive py-12 relative z-10">
+      <div className="elevatr-content-area py-12 relative z-10">
         {/* Header */}
-        <div className="text-center mb-16 animate-fade-in-up">
-          <h1 className="text-7xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent mb-6">
+        <div className="text-center mb-16 elevatr-animate-fade-in">
+          <h1 className="text-7xl font-bold elevatr-gradient-text mb-6">
             Elevatr
           </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
             Accelerate your career growth with structured sprints, daily tracking, and actionable insights
           </p>
         </div>
 
         {/* Login Card */}
-        <div className="max-w-lg mx-auto mb-20 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-          <Card variant="glass" className="p-8 text-center shadow-dramatic">
+        <div className="max-w-lg mx-auto mb-20 elevatr-animate-slide-in-up">
+          <ElevatrCard variant="glass-strong" className="elevatr-card-content text-center">
             <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
               <LogIn className="h-10 w-10 text-primary" />
             </div>
-            <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+            <h2 className="text-3xl font-bold mb-4 elevatr-gradient-text">
               Get Started
-            </h2>
-            <p className="text-muted-foreground mb-8 leading-relaxed">
+            </h2><p className="text-muted-foreground mb-8 leading-relaxed">
               {hasLocalDataToSync 
                 ? "Sign in to sync your local data to the cloud, or continue without an account"
                 : "Sign in with your Google account for cloud sync, or try locally first"
               }
-            </p>
             </p>
             
             {hasLocalDataToSync && (
@@ -128,13 +125,11 @@ export function LoginPage() {
                   <span className="text-sm font-medium text-red-700 dark:text-red-300">{error}</span>
                 </div>
               </div>
-            )}
-
-            <div className="space-y-4">
-              <Button
+            )}            <div className="space-y-4">
+              <ElevatrButton
                 onClick={handleSignIn}
                 disabled={loading || isSigningIn}
-                variant="gradient"
+                variant="motivation"
                 className="w-full h-12 text-base font-semibold group"
                 size="lg"
               >
@@ -144,7 +139,7 @@ export function LoginPage() {
                   <LogIn className="h-5 w-5 mr-3 group-hover:scale-110 transition-transform" />
                 )}
                 {isSigningIn ? 'Signing in...' : 'Sign in with Google'}
-              </Button>
+              </ElevatrButton>
               
               <div className="flex items-center gap-4 my-6">
                 <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent"></div>
@@ -152,15 +147,16 @@ export function LoginPage() {
                 <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent"></div>
               </div>
               
-              <Button                onClick={handleContinueAsGuest}
+              <ElevatrButton
+                onClick={handleContinueAsGuest}
                 disabled={loading}
-                variant="glass"
+                variant="secondary"
                 className="w-full h-12 text-base group"
                 size="lg"
               >
                 <User className="h-5 w-5 mr-3 group-hover:scale-110 transition-transform" />
                 Continue without signing in
-              </Button>
+              </ElevatrButton>
               
               {isMobile && (
                 <div className="text-xs text-muted-foreground text-center p-3 bg-muted/30 rounded-lg">
@@ -180,32 +176,40 @@ export function LoginPage() {
                   <span className="w-2 h-2 rounded-full bg-blue-500"></span>
                   <strong>Local mode:</strong> Your data stays private on this device only
                 </p>
-              </div>
-            </div>
-          </Card>
+              </div>            </div>
+          </ElevatrCard>
         </div>
 
         {/* Features Grid */}
         <div className="max-w-6xl mx-auto">
-          <h3 className="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-white">
+          <h3 className="text-3xl font-bold text-center mb-12 elevatr-gradient-text elevatr-animate-slide-in-up">
             Why Choose Elevatr?
           </h3>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="elevatr-grid">
             {features.map((feature, index) => (
-              <Card key={index} className="p-6 text-center">
-                <feature.icon className="h-12 w-12 mx-auto mb-4 text-blue-600 dark:text-blue-400" />
-                <h4 className="text-lg font-semibold mb-3">{feature.title}</h4>
-                <p className="text-gray-600 dark:text-gray-400 text-sm">
+              <ElevatrCard 
+                key={index} 
+                variant="glass" 
+                hover
+                className="elevatr-card-content text-center group elevatr-animate-fade-in"
+              >
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <feature.icon className="h-8 w-8 text-primary group-hover:text-accent transition-colors duration-300" />
+                </div>
+                <h4 className="text-lg font-semibold mb-3 text-foreground group-hover:text-primary transition-colors duration-300">
+                  {feature.title}
+                </h4>
+                <p className="text-muted-foreground text-sm leading-relaxed">
                   {feature.description}
                 </p>
-              </Card>
+              </ElevatrCard>
             ))}
           </div>
-        </div>
-
-        {/* Footer */}
-        <div className="text-center mt-16 text-gray-500 dark:text-gray-400">
-          <p>&copy; 2024 Elevatr. Elevate your career, one sprint at a time.</p>
+        </div>{/* Footer */}
+        <div className="text-center mt-16 animate-fade-in-up" style={{ animationDelay: '1000ms' }}>
+          <p className="text-muted-foreground text-sm bg-gradient-to-r from-muted-foreground/80 to-muted-foreground bg-clip-text">
+            &copy; 2024 Elevatr. Elevate your career, one sprint at a time.
+          </p>
         </div>
       </div>
     </div>

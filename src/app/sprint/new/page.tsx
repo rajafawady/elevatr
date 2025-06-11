@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { ElevatrButton } from '@/components/ui/ElevatrButton';
+import { ElevatrCard } from '@/components/ui/ElevatrCard';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useOptimisticSprints } from '@/hooks/useDataSync';
 import { Sprint } from '@/types';
@@ -145,46 +145,43 @@ export default function NewSprintPage() {
       }
     };
     reader.readAsText(file);
-  };
-
-  if (!user) {
+  };  if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="elevatr-container flex items-center justify-center min-h-screen px-4">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
-
   return (
-    <div className="container mx-auto px-6 py-8 max-w-4xl">
+    <div className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-8">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href="/">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6 sm:mb-8 elevatr-animate-fade-in">
+        <Link href="/">
+          <ElevatrButton variant="secondary" size="sm" className="self-start">
             <ArrowLeft className="h-5 w-5" />
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold">Create New Sprint</h1>
-          <p className="text-muted-foreground">
+          </ElevatrButton>
+        </Link>
+        <div className="flex-1">
+          <h1 className="text-2xl sm:text-3xl font-bold elevatr-gradient-text">Create New Sprint</h1>
+          <p className="text-muted-foreground text-sm sm:text-base mt-1">
             Start your journey with a structured career growth sprint
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8">
         {/* Sprint Configuration */}
         <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Target className="h-5 w-5" />
+          <ElevatrCard variant="glass" className="elevatr-animate-fade-in elevatr-animate-delay-1">
+            <div className="elevatr-card-header">
+              <h2 className="text-xl font-semibold flex items-center gap-2">
+                <Target className="h-5 w-5 text-primary" />
                 Sprint Details
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+              </h2>
+            </div>
+            <div className="elevatr-card-content space-y-6">
               <div>
-                <label htmlFor="title" className="block text-sm font-medium mb-2">
+                <label htmlFor="title" className="block text-sm font-medium mb-3">
                   Sprint Title
                 </label>
                 <input
@@ -192,13 +189,12 @@ export default function NewSprintPage() {
                   type="text"
                   value={sprintTitle}
                   onChange={(e) => setSprintTitle(e.target.value)}
-                  placeholder="e.g., Q2 Career Growth Sprint"
-                  className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground"
+                  placeholder="e.g., Q2 Career Growth Sprint"                  className="w-full px-4 py-3 glass-panel rounded-lg border-0 bg-background/50 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                 />
               </div>
-
+              
               <div>
-                <label htmlFor="description" className="block text-sm font-medium mb-2">
+                <label htmlFor="description" className="block text-sm font-medium mb-3">
                   Description
                 </label>
                 <textarea
@@ -206,53 +202,53 @@ export default function NewSprintPage() {
                   value={sprintDescription}
                   onChange={(e) => setSprintDescription(e.target.value)}
                   placeholder="Describe your goals and focus areas for this sprint..."
-                  rows={3}
-                  className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground"
+                  rows={4}
+                  className="w-full px-4 py-3 glass-panel rounded-lg border-0 bg-background/50 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">
+                <label className="block text-sm font-medium mb-3">
                   Sprint Duration
                 </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <Button
-                    variant={sprintType === '15-day' ? 'default' : 'outline'}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <ElevatrButton
+                    variant={sprintType === '15-day' ? 'motivation' : 'secondary'}
                     onClick={() => setSprintType('15-day')}
-                    className="justify-start"
+                    className="justify-center sm:justify-start h-12"
                   >
                     <Calendar className="h-4 w-4 mr-2" />
                     15 Days
-                  </Button>
-                  <Button
-                    variant={sprintType === '30-day' ? 'default' : 'outline'}
+                  </ElevatrButton>
+                  <ElevatrButton
+                    variant={sprintType === '30-day' ? 'motivation' : 'secondary'}
                     onClick={() => setSprintType('30-day')}
-                    className="justify-start"
+                    className="justify-center sm:justify-start h-12"
                   >
                     <Calendar className="h-4 w-4 mr-2" />
                     30 Days
-                  </Button>
+                  </ElevatrButton>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </div>            </div>
+          </ElevatrCard>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Upload className="h-5 w-5" />
+          <ElevatrCard variant="glass" className="elevatr-animate-fade-in elevatr-animate-delay-2">
+            <div className="elevatr-card-header">
+              <h2 className="text-xl font-semibold flex items-center gap-2">
+                <Upload className="h-5 w-5 text-primary" />
                 Import Sprint Template
-              </CardTitle>
-            </CardHeader>            <CardContent>
-              <div className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+              </h2>
+            </div>
+            <div className="elevatr-card-content">
+              <div className={`border-2 border-dashed rounded-xl p-6 sm:p-8 text-center transition-all duration-300 ${
                 uploadedSprintData 
                   ? 'border-green-400 bg-green-50 dark:bg-green-950/20' 
                   : 'border-muted-foreground/25 hover:border-muted-foreground/40'
               }`}>
-                <Upload className={`h-8 w-8 mx-auto mb-2 ${
+                <Upload className={`h-10 w-10 mx-auto mb-4 transition-colors ${
                   uploadedSprintData ? 'text-green-600' : 'text-muted-foreground'
                 }`} />
-                <p className={`text-sm mb-4 ${
+                <p className={`text-sm mb-6 transition-colors ${
                   uploadedSprintData ? 'text-green-700 dark:text-green-400' : 'text-muted-foreground'
                 }`}>
                   {uploadedSprintData 
@@ -267,89 +263,102 @@ export default function NewSprintPage() {
                   className="hidden"
                   id="file-upload"
                 />
-                <Button variant="outline" asChild>
-                  <label htmlFor="file-upload" className="cursor-pointer">
-                    {uploadedSprintData ? 'Upload Different File' : 'Choose File'}
-                  </label>
-                </Button>
-                {uploadedSprintData && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => setUploadedSprintData(null)}
-                    className="ml-2"
-                  >
-                    Clear
-                  </Button>
-                )}
+                
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <ElevatrButton variant="secondary" className="min-w-[140px]">
+                    <label htmlFor="file-upload" className="cursor-pointer">
+                      {uploadedSprintData ? 'Upload Different File' : 'Choose File'}
+                    </label>
+                  </ElevatrButton>
+                  
+                  {uploadedSprintData && (
+                    <ElevatrButton 
+                      variant="secondary" 
+                      size="sm" 
+                      onClick={() => setUploadedSprintData(null)}
+                      className="min-w-[80px]"
+                    >
+                      Clear
+                    </ElevatrButton>
+                  )}                </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </ElevatrCard>
         </div>
 
         {/* Sprint Preview */}
-        <div>
-          <Card>
-            <CardHeader>
-              <CardTitle>Sprint Preview</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-semibold text-lg">
+        <div className="order-first xl:order-last">
+          <ElevatrCard variant="glass" className="elevatr-animate-fade-in elevatr-animate-delay-3 sticky top-6">
+            <div className="elevatr-card-header">
+              <h2 className="text-xl font-semibold">Sprint Preview</h2>
+            </div>
+            <div className="elevatr-card-content">
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <h3 className="font-semibold text-lg leading-tight">
                     {sprintTitle || 'Your Sprint Title'}
                   </h3>
-                  <p className="text-muted-foreground text-sm">
+                  <p className="text-muted-foreground text-sm leading-relaxed">
                     {sprintDescription || 'Sprint description will appear here'}
                   </p>
-                </div>                <div className="bg-muted/30 rounded-lg p-4">
+                </div>
+                
+                <div className="bg-muted/30 rounded-xl p-4 sm:p-5 space-y-3">
                   <div className="flex items-center justify-between text-sm">
-                    <span>Duration:</span>
-                    <span className="font-medium">
+                    <span className="text-muted-foreground">Duration:</span>
+                    <span className="font-medium text-foreground">
                       {uploadedSprintData ? `${uploadedSprintData.length} days` : 
                        sprintType === '15-day' ? '15 days' : '30 days'}
                     </span>
-                  </div>                  <div className="flex items-center justify-between text-sm mt-2">
-                    <span>Total Tasks:</span>
-                    <span className="font-medium">                      {uploadedSprintData ? 
+                  </div>
+                  
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Total Tasks:</span>
+                    <span className="font-medium text-foreground">
+                      {uploadedSprintData ? 
                         uploadedSprintData.reduce((acc: number, day: UploadedDayData) => 
                           acc + (day.tasks?.length || 0), 0
                         ) + ' tasks' :
                         `${(sprintType === '15-day' ? 15 : 30) * 3} tasks (default)`
                       }
                     </span>
-                  </div><div className="flex items-center justify-between text-sm mt-2">
-                    <span>Daily Structure:</span>
-                    <span className="font-medium">
+                  </div>
+                  
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Daily Structure:</span>
+                    <span className="font-medium text-foreground text-right text-xs sm:text-sm">
                       {uploadedSprintData ? 'Custom from file' : '2 Core + 1 Special (Default)'}
                     </span>
                   </div>
+                  
                   {uploadedSprintData && (
-                    <div className="mt-3 pt-3 border-t border-muted-foreground/20">
-                      <div className="text-xs text-green-600 dark:text-green-400">
-                        ✓ Sprint template loaded from file
+                    <div className="mt-4 pt-4 border-t border-muted-foreground/20">
+                      <div className="text-xs text-green-600 dark:text-green-400 flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-green-600 dark:bg-green-400"></div>
+                        Sprint template loaded from file
                       </div>
                     </div>
                   )}
                 </div>
-
-                <Button
+                
+                <ElevatrButton
                   onClick={handleCreateSprint}
                   disabled={!sprintTitle.trim() || loading}
-                  className="w-full"
+                  variant="motivation"
+                  className="w-full h-12 text-base font-medium"
                 >
                   {loading ? (
                     <LoadingSpinner size="sm" />
                   ) : (
                     <>
-                      <Plus className="h-4 w-4 mr-2" />
+                      <Plus className="h-5 w-5 mr-2" />
                       Create Sprint
                     </>
                   )}
-                </Button>
+                </ElevatrButton>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </ElevatrCard>
         </div>
       </div>
     </div>

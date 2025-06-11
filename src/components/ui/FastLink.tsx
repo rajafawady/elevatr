@@ -13,6 +13,7 @@ interface FastLinkProps {
   replace?: boolean;
   prefetch?: boolean;
   onHover?: () => void;
+  onClick?: () => void;
   disabled?: boolean;
 }
 
@@ -23,6 +24,7 @@ export function FastLink({
   replace = false, 
   prefetch = true,
   onHover,
+  onClick,
   disabled = false,
   ...props 
 }: FastLinkProps) {
@@ -34,6 +36,9 @@ export function FastLink({
       e.preventDefault();
       return;
     }
+
+    // Call the passed onClick handler
+    onClick?.();
 
     // Let Next.js handle the navigation for better performance
     // But still trigger our state updates

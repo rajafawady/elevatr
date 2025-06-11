@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
+import { ElevatrCard } from '@/components/ui/ElevatrCard';
+import { ElevatrBadge } from '@/components/ui/ElevatrBadge';
 import { 
   Target, 
   Award,
@@ -172,77 +172,75 @@ export default function ProgressPage() {
           <p className="text-gray-600 dark:text-gray-400 mt-1">
             Track your career development journey
           </p>
-        </div>
-
-        {/* Key Metrics */}
+        </div>        {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="p-6">
+          <ElevatrCard variant="glass" className="p-6 elevatr-animate-delay-1">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Sprints</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalSprints}</p>
-                <p className="text-sm text-green-600">
+                <p className="text-sm font-medium text-muted">Total Sprints</p>
+                <p className="text-2xl font-bold text-primary">{stats.totalSprints}</p>
+                <p className="text-sm text-success">
                   {stats.completedSprints} completed
                 </p>
               </div>
-              <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
-                <Target className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              <div className="p-3 bg-primary/10 rounded-full">
+                <Target className="w-6 h-6 text-primary" />
               </div>
             </div>
-          </Card>
+          </ElevatrCard>
 
-          <Card className="p-6">
+          <ElevatrCard variant="glass" className="p-6 elevatr-animate-delay-2">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Tasks Completed</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.completedTasks}</p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm font-medium text-muted">Tasks Completed</p>
+                <p className="text-2xl font-bold text-success">{stats.completedTasks}</p>
+                <p className="text-sm text-muted">
                   of {stats.totalTasks} total
                 </p>
               </div>
-              <div className="p-3 bg-green-100 dark:bg-green-900 rounded-full">
-                <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+              <div className="p-3 bg-success/10 rounded-full">
+                <CheckCircle className="w-6 h-6 text-success" />
               </div>
             </div>
-          </Card>
+          </ElevatrCard>
 
-          <Card className="p-6">
+          <ElevatrCard variant="glass" className="p-6 elevatr-animate-delay-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Current Streak</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.currentStreak}</p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm font-medium text-muted">Current Streak</p>
+                <p className="text-2xl font-bold text-badge">{stats.currentStreak}</p>
+                <p className="text-sm text-muted">
                   Best: {stats.longestStreak} days
                 </p>
               </div>
-              <div className="p-3 bg-orange-100 dark:bg-orange-900 rounded-full">
-                <Zap className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+              <div className="p-3 bg-badge/10 rounded-full">
+                <Zap className="w-6 h-6 text-badge" />
               </div>
             </div>
-          </Card>
+          </ElevatrCard>
 
-          <Card className="p-6">
+          <ElevatrCard variant="glass" className="p-6 elevatr-animate-delay-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Avg Completion</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="text-sm font-medium text-muted">Avg Completion</p>
+                <p className="text-2xl font-bold text-primary">
                   {stats.averageCompletionRate.toFixed(0)}%
                 </p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted">
                   across all sprints
                 </p>
               </div>
-              <div className="p-3 bg-purple-100 dark:bg-purple-900 rounded-full">
-                <Award className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+              <div className="p-3 bg-purple-500/10 rounded-full">
+                <Award className="w-6 h-6 text-purple-500" />
               </div>
             </div>
-          </Card>
+          </ElevatrCard>
         </div>
 
         {/* Activity Chart */}
-        <Card className="p-6 mb-8">
+        <ElevatrCard variant="glass" className="p-6 mb-8 elevatr-animate-delay-5">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Daily Activity</h2>
+            <h2 className="text-xl font-semibold elevatr-gradient-text">Daily Activity</h2>
             <div className="flex gap-2">
               {(['7d', '30d', '90d'] as const).map((range) => (
                 <button
@@ -250,8 +248,8 @@ export default function ProgressPage() {
                   onClick={() => setTimeRange(range)}
                   className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
                     timeRange === range
-                      ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
-                      : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
+                      ? 'bg-primary/20 text-primary border border-primary/30'
+                      : 'text-muted hover:text-primary hover:bg-primary/10'
                   }`}
                 >
                   {range}
@@ -264,81 +262,84 @@ export default function ProgressPage() {
             {dailyProgress.map((day, index) => (
               <div key={index} className="flex-1 flex flex-col items-center">
                 <div
-                  className="w-full bg-blue-500 rounded-t-sm min-h-[2px] transition-all hover:bg-blue-600"
+                  className="w-full bg-primary rounded-t-sm min-h-[2px] transition-all hover:bg-primary/80"
                   style={{
                     height: `${(day.tasksCompleted / maxDailyTasks) * 160}px`
                   }}
                   title={`${format(day.date, 'MMM d')}: ${day.tasksCompleted} tasks`}
                 />
-                <span className="text-xs text-gray-500 mt-2">
+                <span className="text-xs text-muted mt-2">
                   {format(day.date, 'dd')}
                 </span>
               </div>
             ))}
           </div>
-        </Card>
+        </ElevatrCard>
 
         {/* Recent Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+          <ElevatrCard variant="glass" className="p-6 elevatr-animate-delay-6">
+            <h2 className="text-xl font-semibold elevatr-gradient-text mb-4">
               Recent Sprints
             </h2>
             <div className="space-y-3">
               {recentSprints.length === 0 ? (
-                <p className="text-gray-500 dark:text-gray-400">No sprints yet</p>
+                <p className="text-muted">No sprints yet</p>
               ) : (
                 recentSprints.map((sprint) => (
                   <div key={sprint.id} className="flex items-center justify-between py-2">
                     <div>
-                      <p className="font-medium text-gray-900 dark:text-white">
+                      <p className="font-medium">
                         {sprint.title}
                       </p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-muted">
                         {format(new Date(sprint.createdAt), 'MMM d, yyyy')}
                       </p>
-                    </div>                    <Badge className={getSprintStatusColor(sprint.status || 'active')}>
+                    </div>
+                    <ElevatrBadge 
+                      variant={sprint.status === 'completed' ? 'success' : sprint.status === 'active' ? 'primary' : 'secondary'}
+                    >
                       {sprint.status || 'active'}
-                    </Badge>
+                    </ElevatrBadge>
                   </div>
                 ))
               )}
             </div>
-          </Card>
+          </ElevatrCard>
 
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+          <ElevatrCard variant="glass" className="p-6 elevatr-animate-delay-7">
+            <h2 className="text-xl font-semibold elevatr-gradient-text mb-4">
               Quick Stats
             </h2>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Tasks this week</span>
-                <span className="font-semibold text-gray-900 dark:text-white">
+                <span className="text-muted">Tasks this week</span>
+                <span className="font-semibold text-primary">
                   {stats.tasksThisWeek}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Tasks this month</span>
-                <span className="font-semibold text-gray-900 dark:text-white">
+                <span className="text-muted">Tasks this month</span>
+                <span className="font-semibold text-primary">
                   {stats.tasksThisMonth}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Active sprints</span>
-                <span className="font-semibold text-gray-900 dark:text-white">
+                <span className="text-muted">Active sprints</span>
+                <span className="font-semibold text-primary">
                   {stats.activeSprints}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Completion rate</span>
-                <span className="font-semibold text-gray-900 dark:text-white">
+                <span className="text-muted">Completion rate</span>
+                <span className="font-semibold text-success">
                   {stats.totalTasks > 0 
                     ? ((stats.completedTasks / stats.totalTasks) * 100).toFixed(0)
                     : 0}%
                 </span>
               </div>
             </div>
-          </Card>
+          </ElevatrCard>
         </div>
       </div>
     </div>

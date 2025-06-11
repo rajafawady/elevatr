@@ -13,7 +13,7 @@ import {
   Clock,
   RefreshCw
 } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { ElevatrButton } from '@/components/ui/ElevatrButton';
 import * as syncService from '@/services/syncService';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -168,9 +168,9 @@ export function SyncIndicator({ showDetails = false, className = '' }: SyncIndic
               {getStatusMessage()}
             </p>
           </div>
-        </div>
-          {(needsSync() || (!syncStatus?.isOnline && !isGuest)) && (
-          <Button
+        </div>        {(needsSync() || (!syncStatus?.isOnline && !isGuest)) && (
+          <ElevatrButton
+            variant="secondary"
             size="sm"
             onClick={handleSyncAction}
             disabled={syncStatus?.syncInProgress || isRefreshing}
@@ -192,7 +192,7 @@ export function SyncIndicator({ showDetails = false, className = '' }: SyncIndic
                 Sync Now
               </>
             )}
-          </Button>
+          </ElevatrButton>
         )}
       </div>      {/* Expandable details */}
       {(syncStatus?.lastSyncAt || !syncStatus?.isOnline || isGuest) && (

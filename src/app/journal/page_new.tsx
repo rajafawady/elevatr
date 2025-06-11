@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { ElevatrButton } from '@/components/ui/ElevatrButton';
+import { ElevatrCard } from '@/components/ui/ElevatrCard';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { CalendarDays, Plus, BookOpen, ArrowRight, Calendar } from 'lucide-react';
 import { useSprintStore, useUserProgressStore } from '@/stores';
@@ -88,13 +88,12 @@ export default function JournalPage() {
             <h1 className="text-2xl font-bold mb-2">No Active Sprint</h1>
             <p className="text-muted-foreground mb-6">
               You need an active sprint to start journaling about your career development.
-            </p>
-            <Button asChild>
-              <Link href="/sprint/new">
+            </p>            <Link href="/sprint/new">
+              <ElevatrButton variant="motivation">
                 <Plus className="h-4 w-4 mr-2" />
                 Create New Sprint
-              </Link>
-            </Button>
+              </ElevatrButton>
+            </Link>
           </div>
         </div>
       </div>
@@ -112,30 +111,28 @@ export default function JournalPage() {
           <p className="text-gray-600 dark:text-gray-400 mt-1">
             Reflect on your career development journey
           </p>
-        </div>
-
-        {/* Current Day Quick Action */}
+        </div>        {/* Current Day Quick Action */}
         {currentDay && (
-          <Card className="mb-6 border-primary/20 bg-primary/5">
-            <CardContent className="p-6">
+          <ElevatrCard variant="glass" className="mb-6 border-primary/20 bg-primary/5">
+            <div className="elevatr-card-content p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-semibold mb-1">
                     Today: Day {currentDay} Reflection
                   </h3>
-                  <p className="text-muted-foreground">
+                  <p className="text-muted">
                     {format(new Date(), 'EEEE, MMMM d, yyyy')}
                   </p>
                 </div>
-                <Button asChild>
-                  <Link href={`/journal/${currentDay}`}>
+                <Link href={`/journal/${currentDay}`}>
+                  <ElevatrButton variant="primary">
                     <BookOpen className="h-4 w-4 mr-2" />
                     Write Today&apos;s Entry
-                  </Link>
-                </Button>
+                  </ElevatrButton>
+                </Link>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </ElevatrCard>
         )}
 
         {/* Sprint Journal Entries */}
@@ -147,56 +144,54 @@ export default function JournalPage() {
             <div className="text-sm text-muted-foreground">
               {journalEntries.filter(e => e.wordCount > 0).length} of {journalEntries.length} days completed
             </div>
-          </div>
-
-          {journalEntries.length === 0 ? (
-            <Card>
-              <CardContent className="p-8 text-center">
-                <CalendarDays className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+          </div>          {journalEntries.length === 0 ? (
+            <ElevatrCard variant="glass">
+              <div className="elevatr-card-content p-8 text-center">
+                <CalendarDays className="mx-auto h-12 w-12 text-muted mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No Sprint Days</h3>
-                <p className="text-muted-foreground">
+                <p className="text-muted">
                   Your sprint doesn&apos;t have any configured days yet.
                 </p>
-              </CardContent>
-            </Card>
+              </div>
+            </ElevatrCard>
           ) : (
             <div className="grid gap-4">
               {journalEntries.map((entry) => (
-                <Card key={entry.dayId} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-6">
+                <ElevatrCard key={entry.dayId} variant="glass" className="hover:shadow-md transition-shadow elevatr-animate-delay-1">
+                  <div className="elevatr-card-content p-6">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <Calendar className="h-4 w-4 text-muted-foreground" />
+                          <Calendar className="h-4 w-4 text-muted" />
                           <h3 className="font-semibold">{entry.title}</h3>
                           <span className="text-xs bg-muted px-2 py-1 rounded-full">
                             {format(entry.date, 'MMM d')}
                           </span>
                           {entry.sprintDay.toString() === currentDay && (
-                            <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded-full">
+                            <span className="text-xs bg-primary text-white px-2 py-1 rounded-full">
                               Today
                             </span>
                           )}
                         </div>
-                        <p className="text-muted-foreground text-sm mb-3 leading-relaxed">
+                        <p className="text-muted text-sm mb-3 leading-relaxed">
                           {entry.preview}
                         </p>
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-4 text-xs text-muted">
                           <span>{entry.wordCount} words</span>
                           <span>{format(entry.date, 'EEEE')}</span>
                         </div>
                       </div>
                       <div className="ml-4">
-                        <Button variant="outline" size="sm" asChild>
-                          <Link href={`/journal/${entry.dayId}`}>
+                        <Link href={`/journal/${entry.dayId}`}>
+                          <ElevatrButton variant="secondary" size="sm">
                             {entry.wordCount > 0 ? 'Edit' : 'Write'}
                             <ArrowRight className="h-3 w-3 ml-1" />
-                          </Link>
-                        </Button>
+                          </ElevatrButton>
+                        </Link>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </ElevatrCard>
               ))}
             </div>
           )}

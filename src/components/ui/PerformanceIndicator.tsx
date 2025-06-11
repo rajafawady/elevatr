@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSprintStore, useTaskStore, useUserProgressStore } from '@/stores';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
+import { ElevatrCard } from '@/components/ui/ElevatrCard';
 import { Clock, Zap, CheckCircle } from 'lucide-react';
 
 export function PerformanceIndicator() {
@@ -27,50 +26,47 @@ export function PerformanceIndicator() {
   }, [sprints, tasks, userProgress, sprintLoading, progressLoading]);
 
   const getPerformanceColor = (value: number, thresholds: { good: number; ok: number }) => {
-    if (value <= thresholds.good) return 'bg-green-100 text-green-800';
-    if (value <= thresholds.ok) return 'bg-yellow-100 text-yellow-800';
-    return 'bg-red-100 text-red-800';
+    if (value <= thresholds.good) return 'bg-success/20 text-success border-success/20';
+    if (value <= thresholds.ok) return 'bg-badge/20 text-badge border-badge/20';
+    return 'bg-destructive/20 text-destructive border-destructive/20';
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-40">
-      <Card className="w-64 bg-white/95 backdrop-blur-sm shadow-lg">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Zap className="h-4 w-4 text-blue-500" />
+    <div className="fixed bottom-4 right-4 z-40 elevatr-animate-fade-in">
+      <ElevatrCard variant="glass-strong" className="w-64">
+        <div className="elevatr-card-header pb-2">
+          <h3 className="text-sm flex items-center gap-2 font-semibold">
+            <Zap className="h-4 w-4 text-primary" />
             Performance Monitor
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {/* Render Performance */}
+          </h3>
+        </div>
+        <div className="elevatr-card-content space-y-3">{/* Render Performance */}
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">Render Time</span>
-            <Badge className={getPerformanceColor(renderTime, { good: 16, ok: 50 })}>
+            <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getPerformanceColor(renderTime, { good: 16, ok: 50 })}`}>
               {renderTime.toFixed(1)}ms
-            </Badge>
-          </div>
-
-          {/* Cache Status */}
+            </span>
+          </div>          {/* Cache Status */}
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">Cache Hits</span>
-            <Badge className="bg-blue-100 text-blue-800">
+            <span className="px-2 py-1 rounded-full text-xs font-medium border bg-primary/20 text-primary border-primary/20">
               {cacheHits}/3
-            </Badge>
+            </span>
           </div>
 
           {/* Update Status */}
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">Updates</span>
             {updating ? (
-              <Badge className="bg-yellow-100 text-yellow-800">
+              <span className="px-2 py-1 rounded-full text-xs font-medium border bg-badge/20 text-badge border-badge/20 flex items-center">
                 <Clock className="h-3 w-3 mr-1" />
                 Syncing
-              </Badge>
+              </span>
             ) : (
-              <Badge className="bg-green-100 text-green-800">
+              <span className="px-2 py-1 rounded-full text-xs font-medium border bg-success/20 text-success border-success/20 flex items-center">
                 <CheckCircle className="h-3 w-3 mr-1" />
                 Synced
-              </Badge>
+              </span>
             )}
           </div>
 
@@ -78,17 +74,17 @@ export function PerformanceIndicator() {
           <div className="text-xs space-y-1">
             <div className="flex justify-between">
               <span>Sprints:</span>
-              <span className={sprintLoading ? 'text-yellow-600' : 'text-green-600'}>
+              <span className={sprintLoading ? 'text-badge' : 'text-success'}>
                 {sprintLoading ? 'Loading...' : `${sprints.length} cached`}
               </span>
             </div>
             <div className="flex justify-between">
               <span>Tasks:</span>
-              <span className="text-green-600">{tasks.length} cached</span>
+              <span className="text-success">{tasks.length} cached</span>
             </div>
             <div className="flex justify-between">
               <span>Progress:</span>
-              <span className={progressLoading ? 'text-yellow-600' : 'text-green-600'}>
+              <span className={progressLoading ? 'text-badge' : 'text-success'}>
                 {progressLoading ? 'Loading...' : userProgress ? 'Cached' : 'None'}
               </span>
             </div>
@@ -97,17 +93,17 @@ export function PerformanceIndicator() {
           {/* Performance Tips */}
           <div className="text-xs text-muted-foreground pt-2 border-t">
             {renderTime > 50 && (
-              <div className="text-orange-600">⚠ Slow render detected</div>
+              <div className="text-badge">⚠ Slow render detected</div>
             )}
             {cacheHits === 3 && (
-              <div className="text-green-600">✓ Optimal cache performance</div>
+              <div className="text-success">✓ Optimal cache performance</div>
             )}
             {updating && (
-              <div className="text-blue-600">🔄 Background sync active</div>
+              <div className="text-primary">🔄 Background sync active</div>
             )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </ElevatrCard>
     </div>
   );
 }

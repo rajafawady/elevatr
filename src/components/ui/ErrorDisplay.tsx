@@ -1,7 +1,7 @@
 'use client';
 
-import { Button } from './Button';
-import { Card, CardContent, CardHeader, CardTitle } from './Card';
+import { ElevatrButton } from './ElevatrButton';
+import { ElevatrCard } from './ElevatrCard';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 
 interface ErrorBoundaryProps {
@@ -18,22 +18,22 @@ export function ErrorDisplay({
   showRetry = true 
 }: ErrorBoundaryProps) {
   return (
-    <Card className="max-w-md mx-auto mt-8">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-destructive">
+    <ElevatrCard variant="glass" className="max-w-md mx-auto mt-8 elevatr-animate-fade-in">
+      <div className="elevatr-card-header">
+        <h3 className="flex items-center gap-2 text-destructive font-bold text-lg">
           <AlertTriangle className="h-5 w-5" />
           {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+        </h3>
+      </div>
+      <div className="elevatr-card-content space-y-4">
         <p className="text-muted-foreground">{message}</p>
         {showRetry && onRetry && (
-          <Button onClick={onRetry} variant="outline" className="w-full">
+          <ElevatrButton onClick={onRetry} variant="secondary" className="w-full">
             <RefreshCw className="h-4 w-4 mr-2" />
             Try Again
-          </Button>
+          </ElevatrButton>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </ElevatrCard>
   );
 }

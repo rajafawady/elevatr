@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/Button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
+import { ElevatrButton } from "@/components/ui/ElevatrButton";
+import { ElevatrCard } from "@/components/ui/ElevatrCard";
+import { ElevatrNotification } from "@/components/ui/ElevatrNotification";
 import { Sprint } from "@/types";
 import { getSprintsByUser } from "@/services/firebase";
 import { useAuth } from "@/contexts/AuthContext";
@@ -60,94 +60,93 @@ export default function SprintsPage() {
       day: "numeric",
     });
   };
-
   if (!user) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Please sign in to view your sprints</h1>
-          <p className="text-muted-foreground">You need to be authenticated to access this page.</p>
-        </div>
+      <div className="elevatr-container py-8">
+        <ElevatrNotification
+          type="info"
+          title="Authentication Required"
+          message="Please sign in to view your sprints."
+        />
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="elevatr-container py-8">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading your sprints...</p>
+            <div className="elevatr-animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground elevatr-animate-pulse">Loading your sprints...</p>
           </div>
         </div>
       </div>
     );
   }
-
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+    <div className="mt-4 p-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 elevatr-animate-fade-in">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">My Sprints</h1>
+          <h1 className="text-3xl font-bold elevatr-gradient-text">My Sprints</h1>
           <p className="text-muted-foreground mt-2">
             Manage your career development sprints and track your progress
           </p>
         </div>
         <Link href="/sprint/new">
-          <Button className="mt-4 sm:mt-0">
+          <ElevatrButton variant="motivation" className="mt-4 sm:mt-0">
             <Plus className="mr-2 h-4 w-4" />
             New Sprint
-          </Button>
+          </ElevatrButton>
         </Link>
       </div>
 
       {error && (
-        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mb-6">
-          <p className="text-destructive font-medium">{error}</p>
-          <Button
-            variant="outline"
-            size="sm"
-            className="mt-2"
-            onClick={() => window.location.reload()}
-          >
-            Try Again
-          </Button>
-        </div>
+        <ElevatrNotification
+          type="error"
+          title="Error Loading Sprints"
+          message={error}
+          action={{
+            label: "Try Again",
+            onClick: () => window.location.reload()
+          }}
+        />
       )}
 
-      {sprints.length === 0 && !loading ? (
-        <div className="text-center py-12">
-          <Target className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No sprints yet</h3>
-          <p className="text-muted-foreground mb-6">
-            Start your career development journey by creating your first sprint.
-          </p>
-          <Link href="/sprint/new">
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Create Your First Sprint
-            </Button>
-          </Link>
-        </div>
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {sprints.map((sprint) => (
-            <Card key={sprint.id} className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardHeader>
+      {sprints.length === 0 && !loading ? (        <ElevatrNotification
+          type="info"
+          title="No sprints yet"
+          message="Start your career development journey by creating your first sprint."
+          icon={<Target className="h-5 w-5" />}
+          action={{
+            label: "Create Your First Sprint",
+            onClick: () => window.location.href = "/sprint/new"
+          }}
+        />
+      ) : (        <div className="elevatr-grid">
+          {sprints.map((sprint, index) => (
+            <ElevatrCard 
+              key={sprint.id} 
+       
+            
+              className={`elevatr-animate-fade-in elevatr-animate-delay-${Math.min(index + 1, 6)}`}
+            >
+              <div className="elevatr-card-header">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <CardTitle className="text-lg line-clamp-2">{sprint.title}</CardTitle>
-                    <CardDescription className="mt-1 line-clamp-2">
+                    <h3 className="text-lg font-semibold line-clamp-2">{sprint.title}</h3>
+                    <p className="text-muted-foreground mt-1 line-clamp-2">
                       {sprint.description}
-                    </CardDescription>
-                  </div>                  <Badge className={getStatusColor(sprint.status || 'planning')} variant="secondary">
+                    </p>
+                  </div>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(sprint.status || 'planning')}`}>
                     {sprint.status || 'planning'}
-                  </Badge>
+                  </span>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">                  <div className="flex items-center text-sm text-muted-foreground">
+              </div>
+              <div className="elevatr-card-content">
+                <div className="space-y-3">
+                  <div className="flex items-center text-sm text-muted-foreground">
                     <Calendar className="mr-2 h-4 w-4" />
                     <span>
                       {formatDate(sprint.startDate)} - {formatDate(sprint.endDate)}
@@ -161,19 +160,19 @@ export default function SprintsPage() {
 
                   <div className="pt-4 flex gap-2">
                     <Link href={`/sprint/${sprint.id}`} className="flex-1">
-                      <Button variant="outline" size="sm" className="w-full">
+                      <ElevatrButton variant="secondary" size="sm" className="w-full">
                         View Details
-                      </Button>
+                      </ElevatrButton>
                     </Link>
                     <Link href={`/sprint/${sprint.id}/edit`} className="flex-1">
-                      <Button variant="default" size="sm" className="w-full">
+                      <ElevatrButton variant="primary" size="sm" className="w-full">
                         Edit
-                      </Button>
+                      </ElevatrButton>
                     </Link>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </ElevatrCard>
           ))}
         </div>
       )}

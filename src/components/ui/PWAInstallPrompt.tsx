@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/Button';
+import { ElevatrButton } from '@/components/ui/ElevatrButton';
+import { ElevatrCard } from '@/components/ui/ElevatrCard';
 import { X, Download } from 'lucide-react';
 
 interface BeforeInstallPromptEvent extends Event {
@@ -86,42 +87,45 @@ export function PWAInstallPrompt() {
   if (typeof window !== 'undefined' && sessionStorage.getItem('elevatr_install_dismissed')) {
     return null;
   }
-
   return (
-    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:max-w-sm z-50 bg-card border rounded-lg shadow-lg p-4">
-      <div className="flex items-start justify-between mb-2">
-        <div className="flex items-center space-x-2">
-          <Download className="h-5 w-5 text-primary" />
-          <h3 className="font-semibold text-sm">Install Elevatr</h3>
+    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:max-w-sm z-50 elevatr-animate-slide-up">
+      <ElevatrCard variant="glass-strong">
+        <div className="elevatr-card-content">
+          <div className="flex items-start justify-between mb-2">
+            <div className="flex items-center space-x-2">
+              <Download className="h-5 w-5 text-primary" />
+              <h3 className="font-semibold text-sm">Install Elevatr</h3>
+            </div>            <ElevatrButton
+              variant="secondary"
+              size="sm"
+              onClick={handleDismiss}
+              className="h-6 w-6 p-0"
+            >
+              <X className="h-4 w-4" />
+            </ElevatrButton>
+          </div>
+          <p className="text-xs text-muted-foreground mb-3">
+            Install Elevatr for a faster, native-like experience with offline access.
+          </p>
+          <div className="flex space-x-2">
+            <ElevatrButton
+              onClick={handleInstallClick}
+              variant="motivation"
+              size="sm"
+              className="flex-1"
+            >
+              Install
+            </ElevatrButton>
+            <ElevatrButton
+              onClick={handleDismiss}
+              variant="secondary"
+              size="sm"
+            >
+              Not now
+            </ElevatrButton>
+          </div>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleDismiss}
-          className="h-6 w-6"
-        >
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
-      <p className="text-xs text-muted-foreground mb-3">
-        Install Elevatr for a faster, native-like experience with offline access.
-      </p>
-      <div className="flex space-x-2">
-        <Button
-          onClick={handleInstallClick}
-          size="sm"
-          className="flex-1"
-        >
-          Install
-        </Button>
-        <Button
-          onClick={handleDismiss}
-          variant="outline"
-          size="sm"
-        >
-          Not now
-        </Button>
-      </div>
+      </ElevatrCard>
     </div>
   );
 }

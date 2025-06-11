@@ -1,20 +1,27 @@
 @import "tailwindcss";
 
 :root {
+  /* Elevatr Color Palette - Light Mode */
   --background: 0 0% 100%;
-  --foreground: 0 0% 9%;
+  --foreground: 215 25% 27%; /* #334155 - Slate Gray */
   --card: 0 0% 100%;
-  --card-foreground: 0 0% 9%;
+  --card-foreground: 215 25% 27%;
   --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 9%;
-  --primary: 217 91% 60%;
+  --popover-foreground: 215 25% 27%;
+  --primary: 217 91% 60%; /* #3B82F6 - Sky Blue */
   --primary-foreground: 0 0% 98%;
-  --secondary: 220 14% 96%;
-  --secondary-foreground: 0 0% 9%;
+  --secondary: 215 20% 65%; /* #64748B - Cool Gray */
+  --secondary-foreground: 215 25% 27%;
   --muted: 220 14% 96%;
-  --muted-foreground: 220 8% 46%;
-  --accent: 220 14% 96%;
-  --accent-foreground: 0 0% 9%;
+  --muted-foreground: 215 20% 65%;
+  --accent: 178 78% 57%; /* #14B8A6 - Teal */
+  --accent-foreground: 0 0% 98%;
+  --success: 160 84% 39%; /* #10B981 - Emerald */
+  --success-foreground: 0 0% 98%;
+  --journal: 270 100% 86%; /* #D8B4FE - Lavender */
+  --journal-foreground: 270 91% 32%;
+  --badge: 43 96% 56%; /* #F59E0B - Amber */
+  --badge-foreground: 43 96% 8%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
   --border: 220 13% 91%;
@@ -22,60 +29,112 @@
   --ring: 217 91% 60%;
   --radius: 0.75rem;
   
-  /* Enhanced color system */
-  --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(229 84% 65%) 100%);
-  --gradient-secondary: linear-gradient(135deg, hsl(220 14% 96%) 0%, hsl(220 14% 98%) 100%);
-  --gradient-accent: linear-gradient(135deg, hsl(260 84% 60%) 0%, hsl(217 91% 60%) 100%);
-  --gradient-success: linear-gradient(135deg, hsl(142 76% 36%) 0%, hsl(158 64% 52%) 100%);
-  --gradient-warning: linear-gradient(135deg, hsl(32 95% 44%) 0%, hsl(43 96% 56%) 100%);
-  --gradient-danger: linear-gradient(135deg, hsl(0 84% 60%) 0%, hsl(15 86% 65%) 100%);
+  /* Enhanced Elevatr Gradients */
+  --gradient-primary: linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%);
+  --gradient-accent: linear-gradient(135deg, #14B8A6 0%, #06B6D4 100%);
+  --gradient-success: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+  --gradient-journal: linear-gradient(135deg, #D8B4FE 0%, #E879F9 100%);
+  --gradient-badge: linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%);
+  --gradient-motivation: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 50%, #14B8A6 100%);
+  --gradient-card: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%);
   
-  /* Glass morphism variables */
-  --glass-bg: rgba(255, 255, 255, 0.85);
-  --glass-border: rgba(255, 255, 255, 0.2);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  /* Glassmorphism - Light Mode */
+  --glass-bg: rgba(255, 255, 255, 0.15);
+  --glass-bg-strong: rgba(255, 255, 255, 0.25);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.12);
+  --glass-shadow-strong: 0 12px 40px rgba(31, 38, 135, 0.15);
   
-  /* Enhanced shadows */
+  /* Enhanced Shadows */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
   --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.08);
   --shadow-lg: 0 10px 24px rgba(0, 0, 0, 0.1);
   --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.12);
+  --shadow-2xl: 0 25px 50px rgba(0, 0, 0, 0.15);
+  
+  /* Sprint & Task Colors */
+  --sprint-active: 217 91% 60%; /* Primary Blue */
+  --sprint-planning: 270 91% 65%; /* Purple */
+  --sprint-completed: 160 84% 39%; /* Success Green */
+  --task-priority-high: 0 84% 60%; /* Red */
+  --task-priority-medium: 43 96% 56%; /* Amber */
+  --task-priority-low: 160 84% 39%; /* Green */
 }
 
 .dark {
-  --background: 222 84% 5%;
-  --foreground: 210 40% 98%;
-  --card: 222 84% 5%;
+  /* Elevatr Dark Mode Palette */
+  --background: 222 84% 5%; /* #0F172A */
+  --foreground: 210 40% 98%; /* #F8FAFC */
+  --card: 217 32% 17%; /* #1E293B */
   --card-foreground: 210 40% 98%;
-  --popover: 222 84% 5%;
+  --popover: 217 32% 17%;
   --popover-foreground: 210 40% 98%;
-  --primary: 217 91% 60%;
+  --primary: 217 91% 60%; /* Keep same primary */
   --primary-foreground: 222 84% 5%;
-  --secondary: 217 32% 17%;
+  --secondary: 215 20% 65%; /* Keep same secondary for continuity */
   --secondary-foreground: 210 40% 98%;
   --muted: 217 32% 17%;
   --muted-foreground: 215 20% 65%;
-  --accent: 217 32% 17%;
+  --accent: 178 78% 57%; /* Keep same teal */
   --accent-foreground: 210 40% 98%;
+  --success: 160 84% 39%; /* Keep same success */
+  --success-foreground: 210 40% 98%;
+  --journal: 270 100% 86%; /* Keep same lavender */
+  --journal-foreground: 270 91% 32%;
+  --badge: 43 96% 56%; /* Keep same amber */
+  --badge-foreground: 43 96% 8%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
   --border: 217 32% 17%;
   --input: 217 32% 17%;
   --ring: 217 91% 60%;
   
-  /* Enhanced dark theme colors */
-  --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(229 84% 65%) 100%);
-  --gradient-secondary: linear-gradient(135deg, hsl(217 32% 17%) 0%, hsl(217 32% 20%) 100%);
-  --gradient-accent: linear-gradient(135deg, hsl(260 84% 60%) 0%, hsl(217 91% 60%) 100%);
-  --gradient-success: linear-gradient(135deg, hsl(142 76% 36%) 0%, hsl(158 64% 52%) 100%);
-  --gradient-warning: linear-gradient(135deg, hsl(32 95% 44%) 0%, hsl(43 96% 56%) 100%);
-  --gradient-danger: linear-gradient(135deg, hsl(0 84% 60%) 0%, hsl(15 86% 65%) 100%);
+  /* Dark Mode Gradients */
+  --gradient-primary: linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%);
+  --gradient-accent: linear-gradient(135deg, #14B8A6 0%, #06B6D4 100%);
+  --gradient-success: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+  --gradient-journal: linear-gradient(135deg, #D8B4FE 0%, #E879F9 100%);
+  --gradient-badge: linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%);
+  --gradient-motivation: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 50%, #14B8A6 100%);
+  --gradient-card: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(30, 41, 59, 0.7) 100%);
   
-  /* Dark glass morphism */
-  --glass-bg: rgba(15, 23, 42, 0.85);
+  /* Glassmorphism - Dark Mode */
+  --glass-bg: rgba(15, 23, 42, 0.15);
+  --glass-bg-strong: rgba(15, 23, 42, 0.25);
   --glass-border: rgba(255, 255, 255, 0.1);
   --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --glass-shadow-strong: 0 12px 40px rgba(0, 0, 0, 0.4);
+  
+  /* Enhanced shadows for dark mode */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 24px rgba(0, 0, 0, 0.35);
+  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.4);
+  --shadow-2xl: 0 25px 50px rgba(0, 0, 0, 0.5);
+}
+
+/* Light mode specific enhancements */
+.light {
+  /* Better text readability in light mode */
+  --foreground: 220 8% 10%; /* Much darker for better contrast */
+  --card-foreground: 220 8% 10%; /* Much darker for better contrast */
+  --popover-foreground: 220 8% 10%; /* Much darker for better contrast */
+  --secondary-foreground: 220 8% 15%; /* Darker for better contrast */
+  --accent-foreground: 220 8% 10%; /* Darker for better contrast */
+  
+  /* Enhanced borders for light mode */
+  --border: 220 13% 85%; /* Slightly darker for better visibility */
+  --input: 220 13% 85%; /* Slightly darker for better visibility */
+  
+  /* Better glass effect for light mode */
+  --glass-bg: rgba(255, 255, 255, 0.95); /* More opaque for better contrast */
+  --glass-border: rgba(220, 220, 220, 0.6); /* More visible */
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  
+  /* Improved muted text contrast */
+  --muted-foreground: 215 20% 50%; /* Darker for better readability */
 }
 
 * {
@@ -140,58 +199,565 @@ body {
 
 /* Modern UI Enhancements */
 
-/* Glass morphism utilities */
+/* Elevatr Glassmorphism Components */
 .glass-card {
   background: var(--glass-bg);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--glass-border);
+  border-radius: 1rem;
+  box-shadow: var(--glass-shadow);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card-strong {
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--glass-border);
+  border-radius: 1.5rem;
+  box-shadow: var(--glass-shadow-strong);
+}
+
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: 0.75rem;
   box-shadow: var(--glass-shadow);
 }
 
-/* Enhanced shadows */
-.shadow-soft {
+/* Elevatr Gradient Utilities */
+.elevatr-gradient-primary {
+  background: var(--gradient-primary);
+  color: white;
+}
+
+.elevatr-gradient-accent {
+  background: var(--gradient-accent);
+  color: white;
+}
+
+.elevatr-gradient-success {
+  background: var(--gradient-success);
+  color: white;
+}
+
+.elevatr-gradient-journal {
+  background: var(--gradient-journal);
+  color: hsl(var(--journal-foreground));
+}
+
+.elevatr-gradient-badge {
+  background: var(--gradient-badge);
+  color: hsl(var(--badge-foreground));
+}
+
+.elevatr-gradient-motivation {
+  background: var(--gradient-motivation);
+  color: white;
+}
+
+.elevatr-gradient-destructive {
+  background: linear-gradient(135deg, #EF4444 0%, #F87171 100%);
+  color: white;
+}
+
+.elevatr-gradient-card {
+  background: var(--gradient-card);
+}
+
+/* Enhanced Elevatr Shadows */
+.elevatr-shadow-soft {
   box-shadow: var(--shadow-sm);
 }
 
-.shadow-medium {
+.elevatr-shadow-medium {
   box-shadow: var(--shadow-md);
 }
 
-.shadow-strong {
+.elevatr-shadow-strong {
   box-shadow: var(--shadow-lg);
 }
 
-.shadow-dramatic {
+.elevatr-shadow-dramatic {
   box-shadow: var(--shadow-xl);
 }
 
-/* Gradient utilities */
-.gradient-primary {
+.elevatr-shadow-hero {
+  box-shadow: var(--shadow-2xl);
+}
+
+/* Elevatr Sprint Status Cards */
+.sprint-card-active {
+  background: linear-gradient(135deg, 
+    hsl(var(--primary) / 0.1) 0%, 
+    hsl(var(--primary) / 0.05) 100%);
+  border: 1px solid hsl(var(--primary) / 0.2);
+  border-left: 4px solid hsl(var(--primary));
+}
+
+.sprint-card-planning {
+  background: linear-gradient(135deg, 
+    hsl(270 91% 65% / 0.1) 0%, 
+    hsl(270 91% 65% / 0.05) 100%);
+  border: 1px solid hsl(270 91% 65% / 0.2);
+  border-left: 4px solid hsl(270 91% 65%);
+}
+
+.sprint-card-completed {
+  background: linear-gradient(135deg, 
+    hsl(var(--success) / 0.1) 0%, 
+    hsl(var(--success) / 0.05) 100%);
+  border: 1px solid hsl(var(--success) / 0.2);
+  border-left: 4px solid hsl(var(--success));
+}
+
+/* Elevatr Task Priority Cards */
+.task-priority-high {
+  background: linear-gradient(135deg, 
+    hsl(var(--task-priority-high) / 0.1) 0%, 
+    hsl(var(--task-priority-high) / 0.05) 100%);
+  border: 1px solid hsl(var(--task-priority-high) / 0.2);
+  border-left: 3px solid hsl(var(--task-priority-high));
+}
+
+.task-priority-medium {
+  background: linear-gradient(135deg, 
+    hsl(var(--task-priority-medium) / 0.1) 0%, 
+    hsl(var(--task-priority-medium) / 0.05) 100%);
+  border: 1px solid hsl(var(--task-priority-medium) / 0.2);
+  border-left: 3px solid hsl(var(--task-priority-medium));
+}
+
+.task-priority-low {
+  background: linear-gradient(135deg, 
+    hsl(var(--task-priority-low) / 0.1) 0%, 
+    hsl(var(--task-priority-low) / 0.05) 100%);
+  border: 1px solid hsl(var(--task-priority-low) / 0.2);
+  border-left: 3px solid hsl(var(--task-priority-low));
+}
+
+/* Elevatr Journal Card */
+.journal-card {
+  background: linear-gradient(135deg, 
+    hsl(var(--journal) / 0.15) 0%, 
+    hsl(var(--journal) / 0.08) 100%);
+  border: 1px solid hsl(var(--journal) / 0.3);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Elevatr Progress Cards */
+.progress-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--gradient-motivation);
+}
+
+/* Elevatr Motivational Badge */
+.motivation-badge {
+  background: var(--gradient-badge);
+  color: hsl(var(--badge-foreground));
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: var(--shadow-sm);
+  animation: pulse-glow 3s infinite;
+}
+
+/* Elevatr Interactive Components */
+.elevatr-button {
   background: var(--gradient-primary);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow);
 }
 
-.gradient-secondary {
-  background: var(--gradient-secondary);
+.elevatr-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transition: left 0.5s ease;
 }
 
-.gradient-accent {
+.elevatr-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.elevatr-button:hover::before {
+  left: 100%;
+}
+
+.elevatr-button:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow);
+}
+
+.elevatr-button-secondary {
+  background: hsl(var(--secondary) / 0.1);
+  border: 1px solid hsl(var(--secondary) / 0.2);
+  color: hsl(var(--secondary));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.elevatr-button-accent {
   background: var(--gradient-accent);
 }
 
-.gradient-success {
+.elevatr-button-success {
   background: var(--gradient-success);
 }
 
-.gradient-warning {
-  background: var(--gradient-warning);
+/* Enhanced Elevatr Interactive Cards */
+.elevatr-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 1rem;
+  padding: 1.75rem; /* Improved from 1.5rem */
+  box-shadow: var(--shadow);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); /* Faster transitions */
 }
 
-.gradient-danger {
-  background: var(--gradient-danger);
+.elevatr-card-interactive {
+  cursor: pointer;
 }
 
-/* Enhanced animations */
+.elevatr-card-interactive:hover {
+  transform: translateY(-2px); /* Reduced from -4px */
+  box-shadow: var(--shadow-lg); /* Reduced from shadow-xl */
+  border-color: hsl(var(--primary) / 0.3);
+}
+
+.elevatr-card-interactive:active {
+  transform: translateY(-1px); /* Reduced from -2px */
+  box-shadow: var(--shadow-md); /* Reduced from shadow-lg */
+}
+
+/* Elevatr Stat Cards */
+.elevatr-stat-card {
+  background: var(--gradient-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.elevatr-stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--gradient-motivation);
+}
+
+.elevatr-stat-card-primary {
+  background: linear-gradient(135deg, 
+    hsl(var(--primary) / 0.1) 0%, 
+    hsl(var(--primary) / 0.05) 100%);
+  border-color: hsl(var(--primary) / 0.2);
+}
+
+.elevatr-stat-card-success {
+  background: linear-gradient(135deg, 
+    hsl(var(--success) / 0.1) 0%, 
+    hsl(var(--success) / 0.05) 100%);
+  border-color: hsl(var(--success) / 0.2);
+}
+
+.elevatr-stat-card-accent {
+  background: linear-gradient(135deg, 
+    hsl(var(--accent) / 0.1) 0%, 
+    hsl(var(--accent) / 0.05) 100%);
+  border-color: hsl(var(--accent) / 0.2);
+}
+
+.elevatr-stat-card-journal {
+  background: linear-gradient(135deg, 
+    hsl(var(--journal) / 0.15) 0%, 
+    hsl(var(--journal) / 0.08) 100%);
+  border-color: hsl(var(--journal) / 0.3);
+}
+
+/* Elevatr Progress Bars */
+.elevatr-progress {
+  width: 100%;
+  height: 0.75rem;
+  background: hsl(var(--muted));
+  border-radius: 9999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.elevatr-progress-bar {
+  height: 100%;
+  background: var(--gradient-primary);
+  border-radius: 9999px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.elevatr-progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+/* Elevatr Card Header */
+.elevatr-card-header {
+  padding: 1.5rem 1.75rem 1rem 1.75rem;
+  border-bottom: 1px solid var(--glass-border);
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.elevatr-card-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 1.75rem;
+  right: 1.75rem;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    hsl(var(--border)),
+    transparent
+  );
+}
+
+.elevatr-card-header h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.elevatr-card-header p {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.875rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.elevatr-card-header-primary {
+  background: linear-gradient(
+    135deg,
+    hsl(var(--primary) / 0.05) 0%,
+    hsl(var(--primary) / 0.02) 100%
+  );
+  border-bottom-color: hsl(var(--primary) / 0.2);
+}
+
+.elevatr-card-header-accent {
+  background: linear-gradient(
+    135deg,
+    hsl(var(--accent) / 0.05) 0%,
+    hsl(var(--accent) / 0.02) 100%
+  );
+  border-bottom-color: hsl(var(--accent) / 0.2);
+}
+
+.elevatr-card-header-success {
+  background: linear-gradient(
+    135deg,
+    hsl(var(--success) / 0.05) 0%,
+    hsl(var(--success) / 0.02) 100%
+  );
+  border-bottom-color: hsl(var(--success) / 0.2);
+}
+
+@media (max-width: 768px) {
+  .elevatr-card-header {
+    padding: 1.25rem 1.25rem 0.75rem 1.25rem;
+  }
+  
+  .elevatr-card-header::after {
+    left: 1.25rem;
+    right: 1.25rem;
+  }
+}
+
+/* Elevatr Card Content */
+.elevatr-card-content {
+  color: hsl(var(--card-foreground));
+}
+
+.elevatr-card-content h4 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.elevatr-card-content p {
+  margin: 0 0 1rem 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: hsl(var(--muted-foreground));
+}
+
+.elevatr-card-content p:last-child {
+  margin-bottom: 0;
+}
+
+.elevatr-card-content .elevatr-button {
+  margin-top: 1rem;
+}
+.elevatr-progress-accent .elevatr-progress-bar {
+  background: var(--gradient-accent);
+}
+
+.elevatr-progress-success .elevatr-progress-bar {
+  background: var(--gradient-success);
+}
+
+.elevatr-progress-journal .elevatr-progress-bar {
+  background: var(--gradient-journal);
+}
+
+/* Elevatr Status Indicators */
+.elevatr-status-indicator {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.elevatr-status-indicator::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 2px solid hsl(var(--background));
+  animation: pulse-glow 2s infinite;
+}
+
+.elevatr-status-active {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+.elevatr-status-active::after {
+  background: hsl(var(--primary));
+}
+
+.elevatr-status-completed {
+  background: hsl(var(--success));
+  color: hsl(var(--success-foreground));
+}
+
+.elevatr-status-completed::after {
+  background: hsl(var(--success));
+}
+
+.elevatr-status-error {
+  background: hsl(var(--destructive));
+  color: hsl(var(--destructive-foreground));
+}
+
+.elevatr-status-error::after {
+  background: hsl(var(--destructive));
+}
+
+.elevatr-status-pending {
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+}
+
+.elevatr-status-pending::after {
+  background: hsl(var(--muted-foreground));
+}
+
+/* Elevatr Floating Action Button */
+.elevatr-fab {
+  background: var(--gradient-motivation);
+  color: white;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  border: none;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 50;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.elevatr-fab:hover {
+  transform: scale(1.1) translateY(-2px);
+  box-shadow: var(--shadow-2xl);
+}
+
+.elevatr-fab:active {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Elevatr Enhanced Animations */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -225,12 +791,32 @@ body {
   }
 }
 
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 @keyframes pulse-glow {
   0%, 100% {
     box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
   }
   50% {
     box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);
+  }
+}
+
+@keyframes motivation-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(245, 158, 11, 0);
   }
 }
 
@@ -243,35 +829,494 @@ body {
   }
 }
 
-/* Animation utilities */
-.animate-fade-in-up {
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes bounce-subtle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Elevatr Animation Utilities */
+.elevatr-animate-fade-in-up {
   animation: fadeInUp 0.6s ease-out;
 }
 
-.animate-fade-in-scale {
+.elevatr-animate-fade-in-scale {
   animation: fadeInScale 0.4s ease-out;
 }
 
-.animate-slide-in-right {
+.elevatr-animate-slide-in-right {
   animation: slideInRight 0.5s ease-out;
 }
 
-.animate-pulse-glow {
+.elevatr-animate-slide-in-left {
+  animation: slideInLeft 0.5s ease-out;
+}
+
+.elevatr-animate-pulse-glow {
   animation: pulse-glow 2s infinite;
 }
 
-.animate-shimmer {
+.elevatr-animate-motivation-pulse {
+  animation: motivation-pulse 3s infinite;
+}
+
+.elevatr-animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.elevatr-animate-bounce-subtle {
+  animation: bounce-subtle 2s ease-in-out infinite;
+}
+
+.elevatr-animate-gradient-shift {
+  background-size: 200% 200%;
+  animation: gradient-shift 4s ease-in-out infinite;
+}
+
+/* Elevatr Hover Effects */
+.elevatr-hover-lift {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.elevatr-hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.elevatr-hover-glow {
+  transition: all 0.3s ease;
+}
+
+.elevatr-hover-glow:hover {
+  box-shadow: 0 0 24px hsl(var(--primary) / 0.3);
+}
+
+.elevatr-hover-scale {
+  transition: transform 0.2s ease;
+}
+
+.elevatr-hover-scale:hover {
+  transform: scale(1.05);
+}
+
+.elevatr-hover-accent-glow:hover {
+  box-shadow: 0 0 24px hsl(var(--accent) / 0.3);
+}
+
+/* Elevatr Focus States */
+.elevatr-focus-ring:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.3);
+}
+
+.elevatr-focus-ring-accent:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px hsl(var(--accent) / 0.3);
+}
+
+/* Elevatr Mobile & Responsive Optimizations */
+@media (max-width: 768px) {
+  /* Ensure header is always visible on mobile */
+  header {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 60 !important;
+    width: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+  }
+  
+  /* Ensure proper layout for mobile */
+  body {
+    overflow-x: hidden;
+  }
+  
+  /* Ensure main content doesn't interfere with header */
+  main {
+    padding-top: 0;
+    margin-top: 0;
+  }
+  
+  /* Mobile header specific styles */
+  header .container,
+  header > div {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  /* Mobile menu button visibility */
+  .md\:hidden {
+    display: flex !important;
+  }
+  
+  /* Ensure mobile navigation works properly */
+  .fixed.z-50 {
+    z-index: 50 !important;
+  }
+  
+  /* Reduce glassmorphism intensity on mobile for better performance */
+  .glass-card {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  
+  .glass-card-strong {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  
+  .glass-panel {
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+  
+  /* Adjust shadows for mobile */
+  .elevatr-shadow-dramatic {
+    box-shadow: var(--shadow-lg);
+  }
+  
+  .elevatr-shadow-hero {
+    box-shadow: var(--shadow-xl);
+  }
+  
+  /* Fixed Mobile padding issues */
+  .elevatr-card {
+    padding: 1.25rem; /* Improved from 1rem */
+  }
+  
+  .elevatr-stat-card {
+    padding: 1.25rem; /* Improved from 1rem */
+  }
+  
+  .journal-card {
+    padding: 1.25rem; /* Improved from 1rem */
+  }
+  
+  /* Better mobile button spacing */
+  .elevatr-button {
+    padding: 0.75rem 1.5rem; /* Improved padding */
+    font-size: 0.9rem;
+    min-height: 2.5rem; /* Added minimum height for better touch targets */
+  }
+  
+  /* FAB positioning for mobile */
+  .elevatr-fab {
+    bottom: 1.5rem; /* Moved up from edge */
+    right: 1.5rem; /* Moved away from edge */
+    width: 3rem;
+    height: 3rem;
+  }
+  
+  /* Reduce unnecessary motion for performance and accessibility */
+  .elevatr-animate-fade-in-up,
+  .elevatr-animate-fade-in-scale,
+  .elevatr-animate-slide-in-right,
+  .elevatr-animate-slide-in-left {
+    animation-duration: 0.2s; /* Reduced further */
+  }
+  
+  /* Remove excessive hover effects on mobile */
+  .elevatr-hover-lift:hover {
+    transform: none; /* Remove hover transform on mobile */
+    box-shadow: var(--shadow-sm);
+  }
+  
+  /* Better mobile spacing for navigation */
+  .nav-link-smooth {
+    padding: 0.75rem 1rem; /* Better touch targets */
+  }
+}
+
+@media (max-width: 480px) {
+  /* Extra small mobile adjustments */
+  .elevatr-card {
+    padding: 0.75rem;
+    border-radius: 0.75rem;
+  }
+  
+  .glass-card,
+  .glass-card-strong {
+    border-radius: 0.75rem;
+  }
+  
+  /* Compact stat cards */
+  .elevatr-stat-card {
+    padding: 0.75rem;
+  }
+  
+  /* Smaller FAB on very small screens */
+  .elevatr-fab {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+}
+
+/* Elevatr High DPI & Retina Optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .glass-card,
+  .glass-card-strong,
+  .glass-panel {
+    /* Enhanced borders for high DPI */
+    border-width: 0.5px;
+  }
+}
+
+/* Elevatr Print Styles */
+@media print {
+  .glass-card,
+  .glass-card-strong,
+  .glass-panel,
+  .elevatr-card {
+    background: white !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: 1px solid #e5e7eb !important;
+    box-shadow: none !important;
+  }
+  
+  .elevatr-gradient-primary,
+  .elevatr-gradient-accent,
+  .elevatr-gradient-success,
+  .elevatr-gradient-journal,
+  .elevatr-gradient-badge,
+  .elevatr-gradient-motivation {
+    background: #f9fafb !important;
+    color: #374151 !important;
+  }
+  
+  .elevatr-fab {
+    display: none !important;
+  }
+}
+
+/* Elevatr Accessibility Enhancements */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  /* Disable all decorative animations when motion is reduced */
+  .elevatr-animate-fade-in-up,
+  .elevatr-animate-fade-in-scale,
+  .elevatr-animate-slide-in-right,
+  .elevatr-animate-slide-in-left,
+  .elevatr-animate-pulse-glow,
+  .elevatr-animate-motivation-pulse,
+  .elevatr-animate-float,
+  .elevatr-animate-bounce-subtle,
+  .elevatr-animate-gradient-shift,
+  .notification-badge,
+  .btn-ripple::before,
+  .sidebar-icon-scale,
+  .nav-link-smooth {
+    animation: none !important;
+    transition: none !important;
+  }
+  
+  /* Keep essential hover feedback but without motion */
+  .hover-lift:hover,
+  .elevatr-hover-lift:hover {
+    transform: none !important;
+    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.5) !important;
+  }
+}
+
+@media (prefers-contrast: high) {
+  :root {
+    --glass-border: rgba(0, 0, 0, 0.6); /* Improved contrast */
+    --border: 220 13% 70%; /* Higher contrast borders */
+    /* Better text contrast */
+    --muted-foreground: 215 20% 45%; /* Darker for better readability */
+    --secondary-foreground: 215 25% 20%; /* Much darker */
+  }
+  
+  .dark {
+    --glass-border: rgba(255, 255, 255, 0.6); /* Improved contrast */
+    --border: 217 32% 35%; /* Higher contrast borders */
+    /* Better text contrast in dark mode */
+    --muted-foreground: 215 20% 75%; /* Lighter for better readability */
+    --secondary-foreground: 210 40% 95%; /* Much lighter */
+  }
+  
+  .glass-card,
+  .glass-card-strong,
+  .glass-panel {
+    border-width: 2px;
+    /* Enhanced backgrounds for better contrast */
+    background: rgba(var(--background), 0.95);
+  }
+  
+  /* Improve notification contrast */
+  .notification-badge {
+    border: 2px solid hsl(var(--background));
+    font-weight: 700;
+  }
+  
+  /* Better button contrast */
+  .elevatr-button,
+  button {
+    border: 2px solid transparent;
+  }
+  
+  button:focus-visible,
+  .elevatr-button:focus-visible {
+    border-color: hsl(var(--primary));
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 2px;
+  }
+}
+
+/* Elevatr Focus Management */
+.elevatr-focus-ring:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+.elevatr-focus-ring-accent:focus-visible {
+  outline: 2px solid hsl(var(--accent));
+  outline-offset: 2px;
+}
+
+/* Elevatr Loading States */
+.elevatr-loading {
+  position: relative;
+  overflow: hidden;
+}
+
+.elevatr-loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255, 255, 255, 0.4),
+    rgba(255, 255, 255, 0.1),
     transparent
   );
   background-size: 200% 100%;
-  animation: shimmer 2s infinite;
+  animation: shimmer 1.5s infinite;
 }
 
-/* Hover effects */
+/* Elevatr Skeleton Loading */
+.elevatr-skeleton {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 25%,
+    hsl(var(--muted-foreground) / 0.1) 50%,
+    hsl(var(--muted)) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+  border-radius: var(--radius);
+}
+
+.elevatr-skeleton-text {
+  height: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.elevatr-skeleton-text:last-child {
+  margin-bottom: 0;
+  width: 60%;
+}
+
+/* Enhanced Container Spacing */
+.elevatr-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem; /* Improved from 1rem */
+}
+
+@media (min-width: 768px) {
+  .elevatr-container {
+    padding: 0 2.5rem; /* Improved from 2rem */
+  }
+}
+
+@media (min-width: 1024px) {
+  .elevatr-container {
+    padding: 0 3.5rem; /* Improved from 3rem */
+  }
+}
+
+.elevatr-container-tight {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.elevatr-container-wide {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* Enhanced Elevatr Grid Utilities */
+.elevatr-grid {
+  display: grid;
+  gap: 1.75rem; /* Improved spacing */
+}
+
+.elevatr-grid-responsive {
+  grid-template-columns: 1fr;
+  gap: 1.5rem; /* Better mobile spacing */
+}
+
+@media (min-width: 768px) {
+  .elevatr-grid-responsive {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .elevatr-grid-responsive {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.elevatr-grid-auto-fit {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.elevatr-grid-auto-fill {
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+}
+
 .hover-lift {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -393,6 +1438,97 @@ body {
   background: hsl(var(--gradient-danger));
 }
 
+/* Unified notification cards */
+.notification-card {
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-soft);
+  transition: all 0.3s ease;
+  border-width: 1px;
+}
+
+.notification-card:hover {
+  box-shadow: var(--shadow-medium);
+}
+
+.notification-card.warning {
+  background: linear-gradient(to right, rgb(254 243 199), rgb(254 240 138), rgb(254 243 199));
+  border-color: rgb(251 191 36);
+}
+
+.dark .notification-card.warning {
+  background: linear-gradient(to right, rgb(146 64 14 / 0.2), rgb(161 98 7 / 0.2), rgb(146 64 14 / 0.2));
+  border-color: rgb(146 64 14);
+}
+
+.notification-card.info {
+  background: linear-gradient(to right, rgb(219 234 254), rgb(199 210 254), rgb(219 234 254));
+  border-color: rgb(59 130 246);
+}
+
+.dark .notification-card.info {
+  background: linear-gradient(to right, rgb(30 58 138 / 0.2), rgb(67 56 202 / 0.2), rgb(30 58 138 / 0.2));
+  border-color: rgb(30 58 138);
+}
+
+.notification-icon {
+  flex-shrink: 0;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  background: linear-gradient(135deg, var(--from), var(--to));
+}
+
+.notification-icon.warning {
+  --from: rgb(252 211 77);
+  --to: rgb(254 240 138);
+}
+
+.dark .notification-icon.warning {
+  --from: rgb(146 64 14 / 0.5);
+  --to: rgb(161 98 7 / 0.5);
+}
+
+.notification-icon.info {
+  --from: rgb(147 197 253);
+  --to: rgb(165 180 252);
+}
+
+.dark .notification-icon.info {
+  --from: rgb(30 58 138 / 0.5);
+  --to: rgb(67 56 202 / 0.5);
+}
+
+/* Unified status icons */
+.status-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.status-icon.status-active {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+.status-icon.status-completed {
+  background: hsl(var(--gradient-success));
+  color: white;
+}
+
+.status-icon.status-error {
+  background: hsl(var(--gradient-danger));
+  color: white;
+}
+
+.status-icon.status-pending {
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+}
+
 /* Responsive spacing utilities */
 .container-responsive {
   max-width: 1200px;
@@ -422,5 +1558,137 @@ body {
   );
   background-size: 200% 100%;
   animation: shimmer 2s infinite;
-  border-radius: var(--radius);
+}
+
+/* Enhanced Sidebar Animations */
+.sidebar-transition {
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-icon-scale {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-icon-scale:hover {
+  transform: scale(1.1);
+}
+
+.sidebar-text-fade {
+  transition: opacity 0.3s ease-in-out, width 0.3s ease-in-out, margin 0.3s ease-in-out;
+}
+
+/* Enhanced Navigation Link Animations */
+.nav-link-smooth {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-link-smooth:hover {
+  transform: translateX(2px);
+}
+
+/* Tooltip Animations */
+.tooltip-slide {
+  animation: tooltip-slide-in 0.2s ease-out;
+}
+
+@keyframes tooltip-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Button Ripple Effect */
+.btn-ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-ripple::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.btn-ripple:active::before {
+  width: 300px;
+  height: 300px;
+}
+
+/* Staggered Animation Delays */
+.nav-item-1 { animation-delay: 0ms; }
+.nav-item-2 { animation-delay: 50ms; }
+.nav-item-3 { animation-delay: 100ms; }
+.nav-item-4 { animation-delay: 150ms; }
+.nav-item-5 { animation-delay: 200ms; }
+.nav-item-6 { animation-delay: 250ms; }
+.nav-item-7 { animation-delay: 300ms; }
+
+/* Header animations */
+@keyframes slideInDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes notificationBounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.2);
+  }
+  60% {
+    transform: scale(1.1);
+  }
+}
+
+.elevatr-animate-slide-in-down {
+  animation: slideInDown 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.elevatr-animate-fade-in {
+  animation: fadeInScale 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced notification animation */
+.notification-badge {
+  animation: notificationBounce 2s ease-in-out infinite;
+}
+
+/* Enhanced header glass effect */
+.header-glass {
+  backdrop-filter: blur(12px) saturate(180%);
+  background: rgba(var(--background), 0.85);
+  border-bottom: 1px solid rgba(var(--border), 0.2);
+}
+
+/* Light mode header enhancements */
+.light .header-glass {
+  background: rgba(255, 255, 255, 0.9);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode header enhancements */
+.dark .header-glass {
+  background: rgba(15, 23, 42, 0.9);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }

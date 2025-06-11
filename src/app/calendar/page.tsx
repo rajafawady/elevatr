@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { ElevatrButton } from '@/components/ui/ElevatrButton';
+import { ElevatrCard } from '@/components/ui/ElevatrCard';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { getActiveSprint, getUserProgress } from '@/services/firebase';
 import { Sprint, UserProgress } from '@/types';
@@ -162,21 +162,20 @@ export default function CalendarPage() {
   ];
 
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="elevatr-container flex items-center justify-center min-h-screen">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-6 py-8 max-w-4xl">
+    <div className="elevatr-container py-8">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-8 elevatr-animate-fade-in">
         <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
+          <h1 className="text-3xl font-bold flex items-center gap-2 elevatr-gradient-text">
             <Calendar className="h-8 w-8" />
             Sprint Calendar
           </h1>
@@ -186,58 +185,57 @@ export default function CalendarPage() {
         </div>
         
         {activeSprint && (
-          <Card className="p-4">
-            <div className="text-sm text-muted-foreground">Active Sprint</div>
-            <div className="font-semibold">{activeSprint.title}</div>
-            <div className="text-sm">
-              {userProgress?.stats.completionPercentage || 0}% Complete
+          <ElevatrCard variant="stat" theme="primary" className="elevatr-animate-fade-in elevatr-animate-delay-1">
+            <div className="elevatr-card-content text-center">
+              <div className="text-sm text-muted-foreground">Active Sprint</div>
+              <div className="font-semibold">{activeSprint.title}</div>
+              <div className="text-sm">
+                {userProgress?.stats.completionPercentage || 0}% Complete
+              </div>
             </div>
-          </Card>
+          </ElevatrCard>
         )}
       </div>
 
       {!activeSprint ? (
-        <Card>
-          <CardContent className="text-center py-12">
-            <Calendar className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+        <ElevatrCard variant="glass" className="elevatr-animate-fade-in elevatr-animate-delay-2">
+          <div className="elevatr-card-content text-center py-12">            <Calendar className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
             <h2 className="text-xl font-semibold mb-2">No Active Sprint</h2>
             <p className="text-muted-foreground mb-4">
               Create a sprint to start tracking your daily progress.
-            </p>
-            <Button asChild>
-              <Link href="/sprint/new">
+            </p>            <Link href="/sprint/new">
+              <ElevatrButton variant="motivation">
                 Create New Sprint
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
+              </ElevatrButton>
+            </Link>
+          </div>
+        </ElevatrCard>
       ) : (
-        <Card>
-          <CardHeader>
+        <ElevatrCard variant="glass" className="elevatr-animate-fade-in elevatr-animate-delay-2">
+          <div className="elevatr-card-header">
             <div className="flex items-center justify-between">
-              <CardTitle>
+              <h2 className="text-xl font-semibold">
                 {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-              </CardTitle>
+              </h2>
               <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="icon"
+                <ElevatrButton
+                  variant="secondary"
+                  size="sm"
                   onClick={() => navigateMonth('prev')}
                 >
                   <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
+                </ElevatrButton>
+                <ElevatrButton
+                  variant="secondary"
+                  size="sm"
                   onClick={() => navigateMonth('next')}
                 >
                   <ChevronRight className="h-4 w-4" />
-                </Button>
+                </ElevatrButton>
               </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            {/* Calendar Grid */}
+          </div>
+          <div className="elevatr-card-content">            {/* Calendar Grid */}
             <div className="grid grid-cols-7 gap-1">
               {/* Day Headers */}
               {dayNames.map(day => (
@@ -251,9 +249,9 @@ export default function CalendarPage() {
                 <div
                   key={index}
                   className={`
-                    aspect-square p-1 text-center relative border rounded-md
+                    aspect-square p-1 text-center relative border rounded-md transition-all duration-200
                     ${calendarDay.isCurrentMonth 
-                      ? 'bg-background' 
+                      ? 'bg-background hover:bg-primary/5' 
                       : 'bg-muted/50 text-muted-foreground'
                     }
                     ${calendarDay.sprintDay 
@@ -261,7 +259,7 @@ export default function CalendarPage() {
                       : ''
                     }
                     ${calendarDay.isCompleted 
-                      ? 'bg-green-100 dark:bg-green-900/20' 
+                      ? 'bg-success/10 border-success/20' 
                       : ''
                     }
                   `}
@@ -282,7 +280,7 @@ export default function CalendarPage() {
                             {calendarDay.tasksCompleted}/{calendarDay.totalTasks}
                           </div>
                           {calendarDay.isCompleted ? (
-                            <CheckCircle2 className="h-3 w-3 text-green-500" />
+                            <CheckCircle2 className="h-3 w-3 text-success" />
                           ) : (
                             <Circle className="h-3 w-3" />
                           )}
@@ -290,7 +288,7 @@ export default function CalendarPage() {
                       )}
                       
                       {calendarDay.hasJournal && (
-                        <BookOpen className="h-3 w-3 text-blue-500 mt-1" />
+                        <BookOpen className="h-3 w-3 text-accent mt-1" />
                       )}
                       
                       {calendarDay.isCurrentMonth && calendarDay.sprintDay && (
@@ -312,16 +310,16 @@ export default function CalendarPage() {
                 <span>Sprint Day</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                <CheckCircle2 className="h-4 w-4 text-success" />
                 <span>All Tasks Complete</span>
               </div>
               <div className="flex items-center gap-2">
-                <BookOpen className="h-4 w-4 text-blue-500" />
+                <BookOpen className="h-4 w-4 text-accent" />
                 <span>Journal Entry</span>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </ElevatrCard>
       )}
     </div>
   );

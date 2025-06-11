@@ -19,7 +19,7 @@ export function LoadingSpinner({ size = 'md', variant = 'default', className }: 
     return (
       <div
         className={cn(
-          'animate-spin rounded-full border-2 border-transparent bg-gradient-to-r from-primary via-accent to-primary bg-clip-border',
+          'elevatr-animate-spin rounded-full border-2 border-transparent',
           sizeClasses[size],
           className
         )}
@@ -36,7 +36,7 @@ export function LoadingSpinner({ size = 'md', variant = 'default', className }: 
     return (
       <div className={cn('flex items-center justify-center', className)}>
         <div className={cn(
-          'rounded-full bg-primary animate-pulse',
+          'rounded-full bg-primary elevatr-animate-pulse',
           sizeClasses[size]
         )} />
       </div>
@@ -44,18 +44,17 @@ export function LoadingSpinner({ size = 'md', variant = 'default', className }: 
   }
 
   if (variant === 'dots') {
+    const dotSize = size === 'xs' ? 'h-1 w-1' : 
+                   size === 'sm' ? 'h-1.5 w-1.5' :
+                   size === 'md' ? 'h-2 w-2' :
+                   size === 'lg' ? 'h-2.5 w-2.5' : 'h-3 w-3';
+    
     return (
       <div className={cn('flex items-center space-x-1', className)}>
         {[0, 1, 2].map((i) => (
           <div
             key={i}
-            className={cn(
-              'rounded-full bg-primary animate-bounce',
-              size === 'xs' ? 'h-1 w-1' : 
-              size === 'sm' ? 'h-1.5 w-1.5' :
-              size === 'md' ? 'h-2 w-2' :
-              size === 'lg' ? 'h-2.5 w-2.5' : 'h-3 w-3'
-            )}
+            className={cn('rounded-full bg-primary elevatr-animate-bounce', dotSize)}
             style={{
               animationDelay: `${i * 0.1}s`,
               animationDuration: '0.6s'
@@ -69,7 +68,7 @@ export function LoadingSpinner({ size = 'md', variant = 'default', className }: 
   return (
     <div
       className={cn(
-        'animate-spin rounded-full border-2 border-muted border-t-primary shadow-soft',
+        'elevatr-animate-spin rounded-full border-2 border-muted border-t-primary elevatr-glow',
         sizeClasses[size],
         className
       )}

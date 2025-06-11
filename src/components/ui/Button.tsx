@@ -20,17 +20,16 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     disabled,
     ...props 
   }, ref) => {
-    const baseStyles = 'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 relative overflow-hidden';
-    
-    const variants = {
-      default: 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-medium hover:shadow-strong hover:-translate-y-0.5',
-      destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-medium hover:shadow-strong hover:-translate-y-0.5',
-      outline: 'border border-input bg-background hover:bg-accent hover:text-accent-foreground shadow-soft hover:shadow-medium hover:-translate-y-0.5',
-      secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-soft hover:shadow-medium hover:-translate-y-0.5',
-      ghost: 'hover:bg-accent hover:text-accent-foreground hover:-translate-y-0.5',
+    const baseStyles = 'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 relative overflow-hidden';
+      const variants = {
+      default: 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-medium hover:shadow-strong',
+      destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-medium hover:shadow-strong',
+      outline: 'border border-input bg-background hover:bg-accent hover:text-accent-foreground shadow-soft hover:shadow-medium',
+      secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-soft hover:shadow-medium',
+      ghost: 'hover:bg-accent hover:text-accent-foreground',
       link: 'text-primary underline-offset-4 hover:underline',
       gradient: 'btn-gradient text-white shadow-medium hover:shadow-strong',
-      glass: 'glass-card text-foreground hover:bg-accent/50 shadow-medium hover:shadow-strong hover:-translate-y-0.5',
+      glass: 'glass-card text-foreground hover:bg-accent/50 shadow-medium hover:shadow-strong',
     };
 
     const sizes = {

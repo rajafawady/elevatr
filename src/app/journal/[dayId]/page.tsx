@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { ElevatrButton } from '@/components/ui/ElevatrButton';
+import { ElevatrCard } from '@/components/ui/ElevatrCard';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useSprintStore, useUserProgressStore } from '@/stores';
 import { ArrowLeft, Save, BookOpen, Calendar } from 'lucide-react';
@@ -103,33 +103,31 @@ export default function JournalPage() {
       </div>
     );
   }
-
   if (!activeSprint) {
     return (
-      <div className="container mx-auto px-6 py-8 text-center">
-        <h1 className="text-2xl font-bold mb-4">No active sprint found</h1>
+      <div className="elevatr-container py-8 text-center">
+        <h1 className="text-2xl font-bold mb-4 elevatr-gradient-text">No active sprint found</h1>
         <p className="text-muted-foreground mb-4">
           You need to have an active sprint to write journal entries.
         </p>
-        <Button asChild>
+        <ElevatrButton variant="motivation">
           <Link href="/sprint/new">
             Create New Sprint
           </Link>
-        </Button>
+        </ElevatrButton>
       </div>
     );
-  }
-  return (
-    <div className="container mx-auto px-4 md:px-6 py-8 max-w-4xl">
+  }  return (
+    <div className="elevatr-container py-8">
       {/* Header */}
-      <div className="flex flex-col md:flex-row items-start md:items-center gap-4 mb-8">
-        <Button variant="ghost" size="icon" asChild className="self-start">
+      <div className="flex flex-col md:flex-row items-start md:items-center gap-4 mb-8 elevatr-animate-fade-in">
+        <ElevatrButton variant="secondary" size="sm">
           <Link href={`/sprint/${activeSprint.id}`}>
             <ArrowLeft className="h-5 w-5" />
           </Link>
-        </Button>
+        </ElevatrButton>
         <div className="flex-1">
-          <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
+          <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2 elevatr-gradient-text">
             <BookOpen className="h-6 w-6 md:h-8 md:w-8" />
             Day {dayId} Journal
           </h1>
@@ -143,7 +141,7 @@ export default function JournalPage() {
               Last saved: {lastSaved.toLocaleTimeString()}
             </span>
           )}
-          <Button onClick={handleSave} disabled={saving} className="w-full md:w-auto">
+          <ElevatrButton onClick={handleSave} disabled={saving} variant="motivation" className="w-full md:w-auto">
             {saving ? (
               <LoadingSpinner size="sm" />
             ) : (
@@ -152,92 +150,89 @@ export default function JournalPage() {
                 Save
               </>
             )}
-          </Button>
+          </ElevatrButton>
         </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      </div>      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Journal Editor */}
         <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
+          <ElevatrCard variant="glass" className="elevatr-animate-fade-in elevatr-animate-delay-1">
+            <div className="elevatr-card-header">
+              <h2 className="text-xl font-semibold flex items-center gap-2">
+                <Calendar className="h-5 w-5 text-primary" />
                 Day {dayId} Reflection
-              </CardTitle>
-            </CardHeader>            <CardContent>
+              </h2>
+            </div>
+            <div className="elevatr-card-content">
               <div className="space-y-4">
                 <textarea
                   value={content}
                   onChange={(e) => handleContentChange(e.target.value)}
                   placeholder="Start writing your reflection for today..."
-                  className="w-full h-96 p-4 border border-input rounded-md bg-background text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="w-full h-96 p-4 glass-panel rounded-md border-0 bg-background/50 text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
                 
                 {/* Status indicators */}
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-4">
                     {hasUnsavedChanges && (
-                      <span className="text-amber-600 dark:text-amber-400">
+                      <span className="text-badge">
                         Unsaved changes
                       </span>
                     )}
                     {saving && (
-                      <span className="text-blue-600 dark:text-blue-400">
+                      <span className="text-primary">
                         Saving...
                       </span>
                     )}
                     {lastSaved && !hasUnsavedChanges && (
-                      <span className="text-green-600 dark:text-green-400">
+                      <span className="text-success">
                         Saved at {lastSaved.toLocaleTimeString()}
                       </span>
                     )}
                     {saveError && (
-                      <span className="text-red-600 dark:text-red-400">
+                      <span className="text-destructive">
                         {saveError}
                       </span>
                     )}
-                  </div>                  <div className="text-muted-foreground">
+                  </div>
+                  <div className="text-muted-foreground">
                     {content.length} characters • {content.split(/\s+/).filter(word => word.length > 0).length} words
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Reflection Prompts */}
+            </div>
+          </ElevatrCard>
+        </div>        {/* Reflection Prompts */}
         <div>
-          <Card>
-            <CardHeader>
-              <CardTitle>Reflection Prompts</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <ElevatrCard variant="glass" className="elevatr-animate-fade-in elevatr-animate-delay-2">
+            <div className="elevatr-card-header">
+              <h2 className="text-xl font-semibold">Reflection Prompts</h2>
+            </div>
+            <div className="elevatr-card-content">
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground mb-4">
                   Use these prompts to guide your reflection:
                 </p>
                 {prompts.map((prompt, index) => (
                   <button
-                    key={index}                    onClick={() => {
+                    key={index}
+                    onClick={() => {
                       const newContent = content + (content ? '\n\n' : '') + prompt + '\n\n';
                       handleContentChange(newContent);
                     }}
-                    className="text-left w-full p-3 text-sm border border-input rounded-md hover:bg-accent transition-colors"
+                    className="text-left w-full p-3 text-sm glass-panel rounded-md border-0 hover:bg-accent/50 transition-colors"
                   >
                     {prompt}
                   </button>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Writing Tips */}
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle>Writing Tips</CardTitle>
-            </CardHeader>
-            <CardContent>
+            </div>
+          </ElevatrCard>          {/* Writing Tips */}
+          <ElevatrCard variant="glass" className="mt-6 elevatr-animate-fade-in elevatr-animate-delay-3">
+            <div className="elevatr-card-header">
+              <h2 className="text-xl font-semibold">Writing Tips</h2>
+            </div>
+            <div className="elevatr-card-content">
               <div className="space-y-2 text-sm text-muted-foreground">
                 <p>• Be honest and authentic in your reflections</p>
                 <p>• Focus on both successes and challenges</p>
@@ -246,8 +241,8 @@ export default function JournalPage() {
                 <p>• Think about what you&apos;d like to remember later</p>
                 <p>• Consider what you&apos;d tell a mentor or colleague</p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </ElevatrCard>
         </div>
       </div>
     </div>

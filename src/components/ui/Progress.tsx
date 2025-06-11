@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 interface ProgressProps extends React.HTMLAttributes<HTMLDivElement> {
   value: number;
   max?: number;
-  variant?: 'default' | 'success' | 'warning' | 'danger' | 'gradient';
+  variant?: 'default' | 'success' | 'warning' | 'danger' | 'gradient' | 'primary' | 'accent' | 'journal';
   size?: 'sm' | 'default' | 'lg';
   showValue?: boolean;
   animated?: boolean;
@@ -25,11 +25,14 @@ export const Progress: React.FC<ProgressProps> = ({
   const percentage = Math.min(Math.max((value / max) * 100, 0), 100);
 
   const variants = {
-    default: 'gradient-primary',
-    success: 'gradient-success',
-    warning: 'gradient-warning',
-    danger: 'gradient-danger',
-    gradient: 'gradient-accent',
+    default: 'elevatr-gradient-primary',
+    primary: 'elevatr-gradient-primary',
+    success: 'elevatr-gradient-success',
+    accent: 'elevatr-gradient-accent',
+    journal: 'elevatr-gradient-journal',
+    warning: 'elevatr-gradient-warning',
+    danger: 'elevatr-gradient-danger',
+    gradient: 'elevatr-gradient-accent',
   };
 
   const sizes = {
@@ -43,9 +46,8 @@ export const Progress: React.FC<ProgressProps> = ({
     default: 'h-3',
     lg: 'h-4',
   };
-
   return (
-    <div className={cn('relative', className)} {...props}>
+    <div className={cn('relative elevatr-animate-fade-in', className)} {...props}>
       {showValue && (
         <div className="flex justify-between items-center mb-2">
           <span className="text-sm font-medium text-foreground">Progress</span>
@@ -54,22 +56,22 @@ export const Progress: React.FC<ProgressProps> = ({
       )}
       <div
         className={cn(
-          'w-full bg-secondary rounded-full overflow-hidden shadow-soft',
+          'w-full bg-secondary/20 rounded-full overflow-hidden glass-panel',
           backgroundSizes[size]
         )}
       >
         <div
           className={cn(
-            'transition-all duration-700 ease-out rounded-full relative overflow-hidden',
+            'transition-all duration-700 ease-out rounded-full relative overflow-hidden elevatr-animate-shimmer',
             variants[variant],
             sizes[size],
-            animated && 'progress-bar',
+            animated && 'elevatr-animate-pulse',
             striped && 'bg-stripes'
           )}
           style={{ width: `${percentage}%` }}
         >
           {animated && (
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent elevatr-animate-shimmer" />
           )}
         </div>
       </div>

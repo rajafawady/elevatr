@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { ElevatrButton } from '@/components/ui/ElevatrButton';
+import { ElevatrCard } from '@/components/ui/ElevatrCard';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useSprintStore, useUserProgressStore } from '@/stores';
 import { useOptimisticTasks } from '@/hooks/useDataSync';
@@ -121,17 +121,16 @@ export default function SprintPage() {
       </div>
     );
   }
-
   if (!sprint) {
     return (
-      <div className="container mx-auto px-6 py-8 text-center">
-        <h1 className="text-2xl font-bold mb-4">Sprint not found</h1>
-        <Button asChild>
-          <Link href="/">
+      <div className="elevatr-container py-8 text-center">
+        <h1 className="text-2xl font-bold mb-4 elevatr-gradient-text">Sprint not found</h1>
+        <ElevatrButton variant="motivation">
+          <Link href="/sprint">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Link>
-        </Button>
+        </ElevatrButton>
       </div>
     );
   }
@@ -140,21 +139,21 @@ export default function SprintPage() {
     (userProgress.taskStatuses.filter(ts => ts.completed).length / 
      (sprint.days.length * 3)) * 100
   ) : 0;  return (
-    <div className="container mx-auto px-6 py-8 max-w-6xl">
+    <div className="p-8">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/">
+        <div className="flex items-center gap-4 mb-8 elevatr-animate-fade-in">
+          <ElevatrButton variant="secondary" size="sm">
+            <Link href="/sprint">
               <ArrowLeft className="h-5 w-5" />
             </Link>
-          </Button>
+          </ElevatrButton>
         <div className="flex-1">
-          <h1 className="text-3xl font-bold">{sprint.title}</h1>
+          <h1 className="text-3xl font-bold elevatr-gradient-text">{sprint.title}</h1>
           <p className="text-muted-foreground">{sprint.description}</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="text-right">
-            <div className="text-2xl font-bold">{overallProgress}%</div>
+            <div className="text-2xl font-bold text-primary">{overallProgress}%</div>
             <div className="text-sm text-muted-foreground">Complete</div>
           </div>
           <div className="w-16 h-16 rounded-full border-4 border-muted flex items-center justify-center relative">
@@ -175,94 +174,95 @@ export default function SprintPage() {
 
       {/* Sprint Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <Card>
-          <CardContent className="p-4 text-center">
-            <Calendar className="h-8 w-8 mx-auto text-blue-500 mb-2" />
+        <ElevatrCard variant="glass" className="elevatr-animate-fade-in elevatr-animate-delay-1">
+          <div className="elevatr-card-content p-4 text-center">
+            <Calendar className="h-8 w-8 mx-auto text-primary mb-2" />
             <div className="text-2xl font-bold">{sprint.duration}</div>
             <div className="text-sm text-muted-foreground">Days</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <Target className="h-8 w-8 mx-auto text-green-500 mb-2" />
+          </div>
+        </ElevatrCard>
+        <ElevatrCard variant="glass" className="elevatr-animate-fade-in elevatr-animate-delay-2">
+          <div className="elevatr-card-content p-4 text-center">
+            <Target className="h-8 w-8 mx-auto text-success mb-2" />
             <div className="text-2xl font-bold">
               {userProgress?.taskStatuses.filter(ts => ts.completed).length || 0}
             </div>
             <div className="text-sm text-muted-foreground">Tasks Done</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <TrendingUp className="h-8 w-8 mx-auto text-orange-500 mb-2" />
+          </div>
+        </ElevatrCard>
+        <ElevatrCard variant="glass" className="elevatr-animate-fade-in elevatr-animate-delay-3">
+          <div className="elevatr-card-content p-4 text-center">
+            <TrendingUp className="h-8 w-8 mx-auto text-badge mb-2" />
             <div className="text-2xl font-bold">
               {userProgress?.streaks.currentTaskStreak || 0}
             </div>
             <div className="text-sm text-muted-foreground">Day Streak</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <Clock className="h-8 w-8 mx-auto text-purple-500 mb-2" />
+          </div>        </ElevatrCard>
+        <ElevatrCard variant="glass" className="elevatr-animate-fade-in elevatr-animate-delay-4">
+          <div className="elevatr-card-content p-4 text-center">
+            <Clock className="h-8 w-8 mx-auto text-accent mb-2" />
             <div className="text-2xl font-bold">
               {userProgress?.stats.totalDaysCompleted || 0}
             </div>
             <div className="text-sm text-muted-foreground">Days Done</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Days Grid */}
+          </div>
+        </ElevatrCard>
+      </div>      {/* Days Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {sprint.days.map((day) => {
+        {sprint.days.map((day, dayIndex) => {
           const dayProgress = getDayProgress(day.day);
           const isCompleted = dayProgress === 100;
           
           return (
-            <Card key={day.day} className={`${isCompleted ? 'ring-2 ring-green-500' : ''}`}>
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center justify-between">
-                  <span className="flex items-center gap-2">
-                    Day {day.day}
-                    {isCompleted && <CheckCircle2 className="h-5 w-5 text-green-500" />}
-                  </span>
+            <ElevatrCard 
+              key={day.day} 
+              variant="glass" 
+              className={`p-4 elevatr-animate-fade-in elevatr-animate-delay-${Math.min(dayIndex + 5, 10)} ${isCompleted ? 'ring-2 ring-success' : ''}`}
+            >
+              <div className="elevatr-card-header pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl font-semibold">{day.day}</span>
+                    {isCompleted && <CheckCircle2 className="h-5 w-5 text-success" />}
+                  </div>
                   <span className="text-sm font-normal text-muted-foreground">
                     {dayProgress}%
                   </span>
-                </CardTitle>
+                </div>
                 <div className="w-full bg-muted rounded-full h-2">
                   <div 
                     className="bg-primary rounded-full h-2 transition-all duration-300"
                     style={{ width: `${dayProgress}%` }}
                   />
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
+              </div>
+              <div className="elevatr-card-content space-y-3">
                 {/* Core Tasks */}
                 <div>
                   <h4 className="text-sm font-medium text-muted-foreground mb-2">Core Tasks</h4>
-                  <div className="space-y-2">                    {day.coreTasks.map((task, index) => {
+                  <div className="space-y-2">
+                    {day.coreTasks.map((task, index) => {
                       const isCompleted = getTaskStatus(day.day, 'core', index);
                       const isTaskUpdating = isUpdating(day.day, 'core', index);
                       
                       return (
-                        <div key={index} className="flex items-center gap-2">                          <Button
-                            variant="ghost"
-                            size="icon"
+                        <div key={index} className="flex items-center gap-2">
+                          <ElevatrButton
+                            variant="secondary"
+                            size="sm"
                             className="h-6 w-6 p-0"
                             onClick={() => handleTaskToggle(day.day, 'core', index, isCompleted)}
                             disabled={isTaskUpdating}
                           >
                             {isTaskUpdating ? (
-                              <div className="relative">
-                                <LoadingSpinner size="sm" />
-                                <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-                              </div>
+                              <LoadingSpinner size="sm" />
                             ) : isCompleted ? (
-                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                              <CheckCircle2 className="h-4 w-4 text-success" />
                             ) : (
                               <Circle className="h-4 w-4" />
                             )}
-                          </Button><span className={`text-sm ${isCompleted ? 'line-through text-muted-foreground' : ''}`}>
+                          </ElevatrButton>
+                          <span className={`text-sm ${isCompleted ? 'line-through text-muted-foreground' : ''}`}>
                             {task.category}: {task.description}
                           </span>
                         </div>
@@ -271,12 +271,13 @@ export default function SprintPage() {
                     
                     {/* Add Core Task */}
                     {showAddTask?.dayId === day.day && showAddTask?.taskType === 'core' ? (
-                      <div className="space-y-2 p-2 border rounded-md">                        <input
+                      <div className="space-y-2 p-2 glass-panel rounded-md">
+                        <input
                           type="text"
                           placeholder="Task category (e.g., Learning, Networking)"
                           value={newTaskCategory}
                           onChange={(e) => setNewTaskCategory(e.target.value)}
-                          className="w-full p-2 text-sm border border-border rounded bg-card text-card-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                          className="w-full p-2 text-sm glass-panel rounded border-0 focus:outline-none focus:ring-2 focus:ring-primary/50"
                           autoFocus
                         />
                         <input
@@ -284,36 +285,37 @@ export default function SprintPage() {
                           placeholder="Task description"
                           value={newTaskTitle}
                           onChange={(e) => setNewTaskTitle(e.target.value)}
-                          className="w-full p-2 text-sm border border-border rounded bg-card text-card-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                          className="w-full p-2 text-sm glass-panel rounded border-0 focus:outline-none focus:ring-2 focus:ring-primary/50"
                           onKeyPress={(e) => e.key === 'Enter' && handleAddTask(day.day, 'core')}
                         />
                         <div className="flex gap-2">
-                          <Button 
+                          <ElevatrButton 
                             size="sm" 
                             onClick={() => handleAddTask(day.day, 'core')}
                             disabled={!newTaskTitle.trim()}
+                            variant="motivation"
                           >
                             Add
-                          </Button>
-                          <Button 
+                          </ElevatrButton>
+                          <ElevatrButton 
                             size="sm" 
-                            variant="ghost" 
+                            variant="secondary" 
                             onClick={() => setShowAddTask(null)}
                           >
                             <X className="h-4 w-4" />
-                          </Button>
+                          </ElevatrButton>
                         </div>
                       </div>
                     ) : (
-                      <Button
-                        variant="ghost"
+                      <ElevatrButton
+                        variant="primary"
                         size="sm"
-                        className="w-full justify-start text-muted-foreground"
+                        className="w-full justify-center text-muted-foreground "
                         onClick={() => setShowAddTask({ dayId: day.day, taskType: 'core' })}
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         Add Core Task
-                      </Button>
+                      </ElevatrButton>
                     )}
                   </div>
                 </div>
@@ -321,29 +323,29 @@ export default function SprintPage() {
                 {/* Special Tasks */}
                 <div>
                   <h4 className="text-sm font-medium text-muted-foreground mb-2">Special Tasks</h4>
-                  <div className="space-y-2">                    {day.specialTasks.map((task, index) => {
+                  <div className="space-y-2">
+                    {day.specialTasks.map((task, index) => {
                       const isCompleted = getTaskStatus(day.day, 'special', index);
                       const isTaskUpdating = isUpdating(day.day, 'special', index);
                       
                       return (
                         <div key={index} className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
+                          <ElevatrButton
+                            variant="secondary"
+                            size="sm"
                             className="h-6 w-6 p-0"
                             onClick={() => handleTaskToggle(day.day, 'special', index, isCompleted)}
-                            disabled={isTaskUpdating}                          >
+                            disabled={isTaskUpdating}
+                          >
                             {isTaskUpdating ? (
-                              <div className="relative">
-                                <LoadingSpinner size="sm" />
-                                <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-                              </div>
+                              <LoadingSpinner size="sm" />
                             ) : isCompleted ? (
-                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                              <CheckCircle2 className="h-4 w-4 text-success" />
                             ) : (
                               <Circle className="h-4 w-4" />
                             )}
-                          </Button>                          <span className={`text-sm ${isCompleted ? 'line-through text-muted-foreground' : ''}`}>
+                          </ElevatrButton>
+                          <span className={`text-sm ${isCompleted ? 'line-through text-muted-foreground' : ''}`}>
                             {task}
                           </span>
                         </div>
@@ -352,58 +354,61 @@ export default function SprintPage() {
                     
                     {/* Add Special Task */}
                     {showAddTask?.dayId === day.day && showAddTask?.taskType === 'special' ? (
-                      <div className="space-y-2 p-2 border rounded-md">                        <input
+                      <div className="space-y-2 p-2 glass-panel rounded-md">
+                        <input
                           type="text"
                           placeholder="Special task description"
                           value={newTaskTitle}
                           onChange={(e) => setNewTaskTitle(e.target.value)}
-                          className="w-full p-2 text-sm border border-border rounded bg-card text-card-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                          className="w-full p-2 text-sm glass-panel rounded border-0 focus:outline-none focus:ring-2 focus:ring-primary/50"
                           autoFocus
                           onKeyPress={(e) => e.key === 'Enter' && handleAddTask(day.day, 'special')}
                         />
                         <div className="flex gap-2">
-                          <Button 
+                          <ElevatrButton 
                             size="sm" 
                             onClick={() => handleAddTask(day.day, 'special')}
                             disabled={!newTaskTitle.trim()}
+                            variant="motivation"
                           >
                             Add
-                          </Button>
-                          <Button 
+                          </ElevatrButton>
+                          <ElevatrButton 
                             size="sm" 
-                            variant="ghost" 
+                            variant="secondary" 
                             onClick={() => setShowAddTask(null)}
                           >
                             <X className="h-4 w-4" />
-                          </Button>
+                          </ElevatrButton>
                         </div>
                       </div>
                     ) : (
-                      <Button
-                        variant="ghost"
+                      <ElevatrButton
+                        variant="primary"
                         size="sm"
-                        className="w-full justify-start text-muted-foreground"
+                        className="w-full justify-center text-muted-foreground "
                         onClick={() => setShowAddTask({ dayId: day.day, taskType: 'special' })}
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         Add Special Task
-                      </Button>
+                      </ElevatrButton>
                     )}
                   </div>
                 </div>
 
                 {/* Journal Entry Link */}
                 <div className="pt-2 border-t">
-                  <Button variant="ghost" size="sm" className="w-full justify-start" asChild>
-                    <Link href={`/journal/${day.day}`}>
+                  <ElevatrButton variant="success" size="sm" className="w-full justify-center elevatr-gradient-journal text-white">
+                    <Link className='flex items-center' href={`/journal/${day.day}`}>
                       <BookOpen className="h-4 w-4 mr-2" />
-                      Day {day.day} Journal
+                      <p>{day.day} Journal</p>
                     </Link>
-                  </Button>
+                  </ElevatrButton>
                 </div>
-              </CardContent>
-            </Card>
-          );        })}
+              </div>
+            </ElevatrCard>
+          );
+        })}
       </div>
     </div>
   );

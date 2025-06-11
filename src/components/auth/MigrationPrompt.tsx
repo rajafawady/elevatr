@@ -2,8 +2,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
+import { ElevatrButton } from '@/components/ui/ElevatrButton';
+import { ElevatrCard } from '@/components/ui/ElevatrCard';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { 
   Database, 
@@ -49,8 +49,8 @@ export function MigrationPrompt({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <Card className="max-w-md w-full p-6 bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-800">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+<ElevatrCard className="w-full max-w-md max-h-[70vh] sm:max-h-[90vh] overflow-y-auto p-2 sm:p-6 bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-800">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center">
             <Database className="w-6 h-6 text-blue-600 mr-2" />
@@ -58,13 +58,13 @@ export function MigrationPrompt({
               Import Local Progress
             </h2>
           </div>
-          <button
+          <ElevatrButton
             onClick={onDecline}
             className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
             disabled={isLoading}
           >
             <X className="w-5 h-5" />
-          </button>
+          </ElevatrButton>
         </div>
 
         <div className="mb-6">
@@ -131,7 +131,7 @@ export function MigrationPrompt({
         )}
 
         <div className="flex space-x-3">
-          <Button
+          <ElevatrButton
             onClick={handleAccept}
             disabled={isLoading}
             className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
@@ -147,22 +147,22 @@ export function MigrationPrompt({
                 Import Progress
               </>
             )}
-          </Button>
+          </ElevatrButton>
           
-          <Button
+          <ElevatrButton
             onClick={onDecline}
             disabled={isLoading}
-            variant="outline"
+            variant="secondary"
             className="flex-1"
           >
             Skip for Now
-          </Button>
+          </ElevatrButton>
         </div>
 
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 text-center">
           Your local progress will remain available until you import or clear it.
         </p>
-      </Card>
+      </ElevatrCard>
     </div>
   );
 }
@@ -177,8 +177,8 @@ export function MigrationResult({ result, onClose, isVisible }: MigrationResultP
   if (!isVisible) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <Card className="max-w-md w-full p-6 bg-white dark:bg-gray-800">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+      <ElevatrCard className="w-full max-w-md max-h-[90vh] overflow-y-auto p-4 sm:p-6 bg-white dark:bg-gray-800">
         <div className="text-center">
           {result.success ? (
             <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-4" />
@@ -214,14 +214,14 @@ export function MigrationResult({ result, onClose, isVisible }: MigrationResultP
             </div>
           )}
           
-          <Button
+          <ElevatrButton
             onClick={onClose}
             className="w-full"
           >
             Continue
-          </Button>
+          </ElevatrButton>
         </div>
-      </Card>
+      </ElevatrCard>
     </div>
   );
 }

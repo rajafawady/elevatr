@@ -3,8 +3,8 @@
 
 import { useState, useEffect } from 'react';
 import { AlertCircle, X, RefreshCw, Wifi, WifiOff } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
+import { ElevatrButton } from '@/components/ui/ElevatrButton';
+import { ElevatrCard } from '@/components/ui/ElevatrCard';
 import { AppError, getErrorDisplayMessage, getErrorActionText } from '@/services/errorHandling';
 
 interface ErrorNotificationProps {
@@ -71,10 +71,9 @@ export function ErrorNotification({
 
   const color = getErrorColor();
   const actionText = getErrorActionText(error);
-
   return (
     <div className={`fixed top-4 right-4 z-50 max-w-md ${className}`}>
-      <Card className={`p-4 border-l-4 border-l-${color}-500 bg-${color}-50 dark:bg-${color}-900/20 shadow-lg transform transition-all duration-300 ${
+      <ElevatrCard variant="glass" className={`p-4 border-l-4 border-l-${color}-500 bg-${color}-50 dark:bg-${color}-900/20 shadow-lg transform transition-all duration-300 ${
         isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
       }`}>
         <div className="flex items-start">
@@ -92,14 +91,15 @@ export function ErrorNotification({
             )}
             {actionText && onRetry && (
               <div className="mt-3">
-                <Button
+                <ElevatrButton
+                  variant="secondary"
                   size="sm"
                   onClick={onRetry}
                   className={`bg-${color}-600 hover:bg-${color}-700 text-white`}
                 >
                   <RefreshCw className="w-4 h-4 mr-2" />
                   {actionText}
-                </Button>
+                </ElevatrButton>
               </div>
             )}
           </div>
@@ -113,7 +113,7 @@ export function ErrorNotification({
             <X className="w-5 h-5" />
           </button>
         </div>
-      </Card>
+      </ElevatrCard>
     </div>
   );
 }
@@ -155,13 +155,12 @@ export function ErrorToast({
           onDismiss={() => onDismiss(index)}
           autoHide={true}
         />
-      ))}
-      {errors.length > maxVisible && (
-        <Card className="p-3 bg-gray-100 dark:bg-gray-800">
+      ))}      {errors.length > maxVisible && (
+        <ElevatrCard variant="glass" className="p-3 bg-gray-100 dark:bg-gray-800">
           <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
             +{errors.length - maxVisible} more errors
           </p>
-        </Card>
+        </ElevatrCard>
       )}
     </div>
   );
