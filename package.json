@@ -3,10 +3,19 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
+    "dev:turbo": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "build:prod": "NODE_ENV=production next build",
+    "deploy:check": "npm run lint && npm run build:prod",
+    "deploy:validate": "powershell -ExecutionPolicy Bypass -File validate-prod.ps1",
+    "deploy:vercel": "vercel --prod",
+    "deploy:prep": "powershell -ExecutionPolicy Bypass -File deploy.ps1",
+    "env:setup": "powershell -ExecutionPolicy Bypass -File setup-env.ps1",
+    "env:check": "echo 'Checking environment configuration...' && node -e \"console.log('NODE_ENV:', process.env.NODE_ENV); console.log('Firebase Project:', process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'Not set');\"",
+    "health:check": "curl -f http://localhost:3000/api/health || echo 'Health check endpoint not available'"
   },
   "dependencies": {
     "@fullcalendar/daygrid": "^6.1.17",

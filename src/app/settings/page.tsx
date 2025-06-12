@@ -20,14 +20,12 @@ import {
 } from 'lucide-react';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { signOut } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import * as localStorageService from '@/services/localStorage';
 import * as dataSync from '@/services/dataSync';
 
 export default function SettingsPage() {
-  const { user, isLocalUser, signInWithGoogle } = useAuth();
+  const { user, isLocalUser, signInWithGoogle, signOut } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
@@ -97,19 +95,14 @@ export default function SettingsPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleSignOut = async () => {
-    try {
-      if (isLocalUser) {
-        // For local users, just clear session
-        window.location.reload();
-      } else {
-        await signOut(auth);
-      }
-      router.push('/');
+  };  const handleSignOut = async () => {    try {
+      // Use the auth context sign out method for all users for consistency
+      await signOut();
+      router.push('/login');
     } catch (error) {
       console.error('Error signing out:', error);
+      // Still redirect on error for consistency
+      router.push('/login');
     }
   };
 

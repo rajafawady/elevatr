@@ -24,7 +24,7 @@ export function ElevatrButton({
   onClick,
   type = 'button'
 }: ElevatrButtonProps) {
-  const baseClasses = "elevatr-button elevatr-focus-ring font-semibold inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed";
+  const baseClasses = "elevatr-button elevatr-focus-ring font-semibold inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer";
   
   const variantClasses = {
     primary: "",

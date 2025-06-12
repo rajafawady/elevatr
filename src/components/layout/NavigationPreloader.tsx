@@ -16,6 +16,8 @@ const CRITICAL_ROUTES = [
 
 // Routes that should be preloaded on idle
 const SECONDARY_ROUTES = [
+  '/login',
+  '/landing',
   '/sprint/new',
   '/upload',
   '/settings',

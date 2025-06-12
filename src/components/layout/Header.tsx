@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAppStore } from '@/stores/appStore';
@@ -27,11 +28,17 @@ import { SyncIndicator } from '@/components/ui/SyncIndicator';
 import { HeaderSyncIndicator } from '@/components/ui/HeaderSyncIndicator';
 
 export function Header() {
+  const router = useRouter();
+  const pathname = usePathname();
   const { user, signOut, isLocalUser, isGuest, signInWithGoogle, clearDataAndStartFresh } = useAuth();
   const { theme, setTheme } = useTheme();
   const { toggleMobileMenu, navigation } = useAppStore();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showThemeMenu, setShowThemeMenu] = useState(false);
+
+  const isLoginPage = pathname === '/login';
+  const isLandingPage = pathname === '/landing';
+  const isSimplePage = isLoginPage || isLandingPage;
 
   const themeOptions = [
     { value: 'light', label: 'Light', icon: Sun },
@@ -39,31 +46,144 @@ export function Header() {
     { value: 'system', label: 'System', icon: Monitor },
   ];
 
-  const currentThemeIcon = themeOptions.find(option => option.value === theme)?.icon || Monitor;  return (
+  const currentThemeIcon = themeOptions.find(option => option.value === theme)?.icon || Monitor;
+
+  // Simplified header for landing and login pages
+  if (isSimplePage) {
+    return (
+      <header className="backdrop-blur-xl bg-background/85 border-b border-border/40 sticky top-0 z-[60] elevatr-animate-slide-in-down shadow-sm dark:shadow-md">
+        <div className="w-full max-w-full px-4 sm:px-6 lg:px-8">
+          <div className="flex h-16 items-center justify-between min-w-0">            {/* Left Section: Logo */}
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="flex items-center min-w-0">
+                <div className="flex items-center gap-3">
+                  <div className="relative group">
+                    <div className="flex items-center justify-center transition-colors duration-200 shrink-0">
+                      <Image
+                        src="/icons/icon-transparent.png"
+                        alt="Elevatr"
+                        width={80}
+                        height={80}
+                        className="transition-opacity duration-200 group-hover:opacity-80"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Section: Theme Toggle and conditional action button */}
+            <div className="flex items-center gap-2 shrink-0">
+              {/* Theme Toggle */}
+              <div className="relative">
+                <ElevatrButton
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setShowThemeMenu(!showThemeMenu)}
+                  className="p-2 transition-colors duration-200 hover:bg-accent/10 group"
+                >
+                  {React.createElement(currentThemeIcon, { 
+                    className: "h-5 w-5 transition-colors group-hover:text-primary" 
+                  })}
+                </ElevatrButton>
+                
+                {showThemeMenu && (
+                  <>
+                    {/* Backdrop */}
+                    <div 
+                      className="fixed inset-0 z-40" 
+                      onClick={() => setShowThemeMenu(false)}
+                    />
+                    <ElevatrCard 
+                      variant="glass" 
+                      className="absolute right-0 top-full mt-2 w-44 z-50 shadow-xl border border-border/10 elevatr-animate-fade-in bg-white/95 dark:bg-background/95 backdrop-blur-xl"
+                    >
+                      <div className="p-2">
+                        <div className="text-xs font-medium text-muted-foreground px-3 py-2 border-b border-border/20 mb-1">
+                          Choose Theme
+                        </div>
+                        {themeOptions.map((option) => (
+                          <button
+                            key={option.value}
+                            onClick={() => {
+                              setTheme(option.value as 'light' | 'dark' | 'system');
+                              setShowThemeMenu(false);
+                            }}
+                            className={cn(
+                              'w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all duration-200 hover:bg-accent/30 hover:scale-[1.02] group/item',
+                              theme === option.value 
+                                ? 'bg-primary/15 text-primary font-medium shadow-sm border border-primary/20' 
+                                : 'text-muted-foreground hover:text-foreground'
+                            )}
+                          >
+                            <option.icon className="h-4 w-4 transition-transform group-hover/item:scale-110" />
+                            <span className="flex-1 text-left">{option.label}</span>
+                            {theme === option.value && (
+                              <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </ElevatrCard>
+                  </>
+                )}
+              </div>
+
+              {/* Action Button - different for landing vs login */}
+              {isLandingPage && (
+                <ElevatrButton
+                  onClick={() => router.push('/login')}
+                  variant="motivation"
+                  size="sm"
+                  className="flex items-center gap-2 px-4 py-2"
+                >
+                  <LogIn className="h-4 w-4" />
+                  <span className="hidden sm:inline">Sign In</span>
+                </ElevatrButton>
+              )}
+              
+              {isLoginPage && (
+                <ElevatrButton
+                  onClick={() => router.push('/landing')}
+                  variant="secondary"
+                  size="sm"
+                  className="flex items-center gap-2 px-4 py-2"
+                >
+                  <span className="hidden sm:inline">Home</span>
+                </ElevatrButton>
+              )}
+            </div>
+          </div>
+        </div>
+      </header>
+    );
+  }
+
+  return (
     <header className="backdrop-blur-xl bg-background/85 border-b border-border/40 sticky top-0 z-[60] elevatr-animate-slide-in-down shadow-sm dark:shadow-md">
       <div className="w-full max-w-full px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between min-w-0">          {/* Left Section: Mobile Menu + Logo */}
           <div className="flex items-center gap-3 min-w-0">            
             <div className="flex items-center min-w-0">
               <div className="flex items-center gap-3">                
-                {/* <div className="relative group">
-                  <div className="hidden sm:block w-8 h-8 rounded-xl bg-white dark:bg-gray-900 shadow-lg border border-border/20 flex items-center justify-center transition-colors duration-200 shrink-0">
+                <div className="relative group">
+                  <div className="w-8 h-8 flex items-center justify-center shrink-0">
                     <Image
-                      src="/icons/icon.svg"
+                      src="/icons/icon-transparent.png"
                       alt="Elevatr"
-                      width={20}
-                      height={20}
+                      width={50}
+                      height={50}
                       className="transition-opacity duration-200 group-hover:opacity-80"
                     />
                   </div>
-                </div> */}
+                </div>
                 <h1 className="text-xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent cursor-default truncate"
                     style={{ backgroundSize: '200% 100%' }}>
                   Elevatr
                 </h1>
               </div>
             </div>
-          </div>          {/* Center Section: Search Bar (Desktop) */}
+          </div>{/* Center Section: Search Bar (Desktop) */}
           <div className="hidden md:flex flex-1 max-w-lg mx-8">
             <div className="relative w-full group">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors duration-200" />
@@ -240,12 +360,8 @@ export function Header() {
                           <div className="space-y-2">
                             <button
                               onClick={async () => {
+                                router.push('/login');
                                 setShowUserMenu(false);
-                                try {
-                                  await signInWithGoogle();
-                                } catch (error) {
-                                  console.error('Error signing in:', error);
-                                }
                               }}
                               className="w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 transition-all duration-200 font-medium shadow-md hover:shadow-lg hover:scale-[1.02]"
                             >
@@ -290,9 +406,7 @@ export function Header() {
                         <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/30 transition-all duration-200 hover:scale-[1.02] group">
                           <Settings className="h-4 w-4 transition-transform group-hover:rotate-45" />
                           Settings
-                        </button>
-
-                        {/* Sign Out / Clear Data */}
+                        </button>                        {/* Sign Out / Clear Data */}
                         <button 
                           onClick={async () => {
                             setShowUserMenu(false);
@@ -302,8 +416,12 @@ export function Header() {
                               } else {
                                 await signOut();
                               }
+                              // Ensure redirect to login page
+                              router.push('/');
                             } catch (error) {
                               console.error('Error during sign out/clear data:', error);
+                              // Still redirect on error for consistency
+                              router.push('/');
                             }
                           }}
                           className="w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all duration-200 border border-red-200 dark:border-red-800/30 font-medium hover:scale-[1.02] hover:shadow-md group"

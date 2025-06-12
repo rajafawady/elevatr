@@ -1,11 +1,12 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User as FirebaseUser, onAuthStateChanged, signInWithRedirect, signOut } from 'firebase/auth';
+import { User as FirebaseUser, onAuthStateChanged, signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { useRouter } from 'next/navigation';
 import { auth, googleProvider, db } from '@/lib/firebase';
 import { User } from '@/types';
-import { signInWithGoogleEnhanced, isPopupSupported, getAuthErrorMessage, handleRedirectResult, getMobileInfo } from '@/lib/auth-utils';
+import { signInWithGoogleEnhanced, isPopupSupported, getAuthErrorMessage, getMobileInfo, checkPopupSupport, showPopupInstructions, signInWithEmailAndPasswordEnhanced, createUserWithEmailAndPasswordEnhanced } from '@/lib/auth-utils';
 import * as localStorageService from '@/services/localStorage';
 import * as dataSync from '@/services/dataSync';
 import * as guestService from '@/services/guestService';
@@ -13,6 +14,7 @@ import * as dataMigration from '@/services/dataMigration';
 import * as syncService from '@/services/syncService';
 import { handleAuthError, AppError } from '@/services/errorHandling';
 import { useSprintStore, useTaskStore, useUserProgressStore } from '@/stores';
+import { set } from 'date-fns';
 
 interface AuthContextType {
   user: User | null;
@@ -22,6 +24,8 @@ interface AuthContextType {
   isLocalUser: boolean;
   isGuest: boolean;
   signInWithGoogle: () => Promise<void>;
+  signInWithEmailAndPassword: (email: string, password: string) => Promise<void>;
+  signUpWithEmailAndPassword: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   continueAsGuest: () => void;
   clearDataAndStartFresh: () => Promise<void>;
@@ -35,6 +39,11 @@ interface AuthContextType {
   setShowLogoutOptions: (show: boolean) => void;
   setShowMigrationPrompt: (show: boolean) => void;
   handleLogoutChoice: (option: 'delete' | 'convert' | 'keep') => Promise<void>;
+  // Popup permission handling
+  showPopupDialog: boolean;
+  popupInstructions: string;
+  setShowPopupDialog: (show: boolean) => void;
+  retrySignIn: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -48,12 +57,16 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
-  const [loading, setLoading] = useState(true);  const [hasLocalDataToSync, setHasLocalDataToSync] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [hasLocalDataToSync, setHasLocalDataToSync] = useState(false);
   const [guestDataSummary, setGuestDataSummary] = useState<any | null>(null);
   const [showLogoutOptions, setShowLogoutOptions] = useState(false);
   const [showMigrationPrompt, setShowMigrationPrompt] = useState(false);
+  const [showPopupDialog, setShowPopupDialog] = useState(false);
+  const [popupInstructions, setPopupInstructions] = useState('');
   
   // Detect mobile browser
   const mobileInfo = getMobileInfo();
@@ -107,33 +120,133 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await setDoc(userRef, newUser);
       return newUser;
     }
-  };  useEffect(() => {
+  };  
+    // Always configure Google provider before use (idempotent)
+  function ensureGoogleProviderConfig() {
+    try {
+      // Clear existing configuration first
+      googleProvider.setCustomParameters({});
+      
+      // Add scopes
+      googleProvider.addScope('email');
+      googleProvider.addScope('profile');
+      
+      // Set custom parameters optimized for mobile
+      googleProvider.setCustomParameters({
+        prompt: 'select_account',
+        access_type: 'online',
+        include_granted_scopes: 'true',
+      });
+      
+      console.log('✅ Google provider configured successfully');
+    } catch (error) {
+      console.error('❌ Error configuring Google provider:', error);
+    }
+  }
+  useEffect(() => {
     const initializeAuth = async () => {
-      setLoading(true);
-      try {
-        // First, check for redirect result before setting up auth state listener
-        console.log('🔄 Checking for redirect authentication result...');
-        console.log('🌐 Current URL:', typeof window !== 'undefined' ? window.location.href : 'SSR');
-        console.log('🔗 Referrer:', typeof window !== 'undefined' ? document.referrer : 'none');
+      setLoading(true);      // Set up auth state listener first
+      const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+        console.log('🔥 Auth state changed. Firebase user:', firebaseUser?.email || 'none');
         
-        const redirectResult = await handleRedirectResult(auth);
+        setLoading(true);
         
-        if (redirectResult?.user) {
-          console.log('✅ Redirect sign-in successful for:', redirectResult.user.email);
-          console.log('🔑 User authenticated via redirect');
-          // Don't call setLoading(false) here - let onAuthStateChanged handle it
-          return; // Exit early, onAuthStateChanged will handle the rest
-        } else {
-          console.log('ℹ️ No redirect result found, proceeding with normal auth check');
+        if (firebaseUser) {
+          try {
+            console.log('👤 Creating/updating user data for:', firebaseUser.email);
+            const userData = await createOrUpdateUser(firebaseUser);
+            setUser(userData);            setFirebaseUser(firebaseUser);
+            console.log('✅ User data set successfully:', userData.uid);
+            
+            // Check for guest data to migrate
+            try {
+              const guestDataSummary = await dataMigration.getGuestDataSummary();
+              if (guestDataSummary) {
+                setGuestDataSummary(guestDataSummary);
+                setShowMigrationPrompt(true);
+                console.log('📊 Found guest data to potentially migrate:', guestDataSummary);
+              }
+            } catch (error) {
+              console.error('❌ Error checking for guest data:', error);
+            }
+
+            // Check if there's local data to sync
+            console.log('🔍 Checking for local data to sync...');
+            const hasDataToSync = dataSync.hasLocalDataToSync();
+            console.log('📊 Has local data to sync:', hasDataToSync);
+            
+            if (hasDataToSync) {
+              try {
+                console.log('🔄 Starting sync process...');
+                
+                const cachedFirebaseUid = localStorage.getItem('elevatr_cached_firebase_uid');
+                console.log('🔍 Cached Firebase UID:', cachedFirebaseUid);
+                console.log('🔍 Current Firebase UID:', firebaseUser.uid);
+                
+                if (cachedFirebaseUid === firebaseUser.uid) {
+                  console.log('🎯 Detected returning user with cached data, syncing changes...');
+                  localStorage.removeItem('elevatr_cached_firebase_uid');
+                } else if (cachedFirebaseUid) {
+                  console.log('⚠️ Different Firebase UID detected. Cached:', cachedFirebaseUid, 'Current:', firebaseUser.uid);
+                } else {
+                  console.log('ℹ️ No cached Firebase UID found, proceeding with normal sync');
+                }
+                
+                const syncResult = await dataSync.syncLocalDataToFirebase(userData);
+                if (syncResult.success) {
+                  console.log('✅ Successfully synced local data to Firebase:', syncResult);
+                  setHasLocalDataToSync(false);
+                } else {
+                  console.error('❌ Sync failed:', syncResult.errors);
+                }
+              } catch (error) {
+                console.error('❌ Error during data sync:', error);
+              }
+            }
+          } catch (error) {
+            console.error('❌ Error creating/updating user:', error);
+            setUser(null);
+            setFirebaseUser(null);
+          }        } else {
+          console.log('👤 No Firebase user, checking for guest/local user...');
+          
+          try {
+            const existingGuestUser = await guestService.getCurrentGuestUser();
+            if (existingGuestUser) {
+              console.log('👤 Using existing guest user:', existingGuestUser.uid);
+              setUser(existingGuestUser);
+            } else {
+              const localUser = localStorageService.getLocalUser();
+              if (localUser) {
+                console.log('👤 Using local user:', localUser.uid);
+                setUser(localUser);
+              } else {
+                console.log('👤 No guest or local user found, user is null');
+                setUser(null);
+              }
+            }
+          } catch (error) {
+            console.error('❌ Error checking for guest user:', error);
+            const localUser = localStorageService.getLocalUser();
+            if (localUser) {
+              console.log('👤 Using local user:', localUser.uid);
+              setUser(localUser);
+            } else {
+              console.log('👤 No local user found, user is null');
+              setUser(null);
+            }
+          }
+          setFirebaseUser(null);
         }
+        
+        setLoading(false);
+        console.log('✅ Auth state change processing complete');
+      });      try {
+        ensureGoogleProviderConfig();
+        
+        console.log('✅ Popup-only authentication initialized');
       } catch (error) {
-        console.error('❌ Error handling redirect result:', error);
-        // Show user-friendly error message for redirect failures
-        if (error instanceof Error && error.message.includes('Firebase configuration')) {
-          console.error('🔥 Firebase configuration issue detected');
-          // You might want to show a user notification here
-        }
-        // Continue with normal auth flow even if redirect fails
+        console.error('❌ Error configuring Google provider:', error);
       }
       
       // Check for local data that needs syncing
@@ -143,13 +256,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         const currentUser = auth.currentUser;
         if (!currentUser) {
-          // Check for guest user first
           const existingGuestUser = await guestService.getCurrentGuestUser();
           if (existingGuestUser) {
             setUser(existingGuestUser);
             console.log('👤 Restored guest user session:', existingGuestUser.uid);
           } else {
-            // Fallback to local user
             const existingLocalUser = localStorageService.getLocalUser();
             if (existingLocalUser) {
               setUser(existingLocalUser);
@@ -160,119 +271,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (error) {
         console.error('❌ Error checking for guest/local user:', error);
       }
-      
-      // Only set loading to false if we're not waiting for a redirect result
+        // Only set loading to false if no current user
       if (!auth.currentUser) {
         setLoading(false);
       }
+
+      return () => unsubscribe();
     };
 
-    initializeAuth();
-
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      console.log('🔥 Auth state changed. Firebase user:', firebaseUser?.email || 'none');
-      setLoading(true);
-      
-      if (firebaseUser) {
-        try {
-          console.log('👤 Creating/updating user data for:', firebaseUser.email);
-          const userData = await createOrUpdateUser(firebaseUser);
-          setUser(userData);
-          setFirebaseUser(firebaseUser);
-            console.log('✅ User data set successfully:', userData.uid);          // Check for guest data to migrate
-          try {
-            const guestDataSummary = await dataMigration.getGuestDataSummary();
-            if (guestDataSummary) {
-              setGuestDataSummary(guestDataSummary);
-              setShowMigrationPrompt(true); // Show the migration prompt UI
-              console.log('📊 Found guest data to potentially migrate:', guestDataSummary);
-            }
-          } catch (error) {
-            console.error('❌ Error checking for guest data:', error);
-          }
-
-          // Check if there's local data to sync
-          console.log('🔍 Checking for local data to sync...');
-          const hasDataToSync = dataSync.hasLocalDataToSync();
-          console.log('📊 Has local data to sync:', hasDataToSync);
-          
-          if (hasDataToSync) {
-            try {
-              console.log('🔄 Starting sync process...');
-              
-              // Check if this is a returning user with cached data
-              const cachedFirebaseUid = localStorage.getItem('elevatr_cached_firebase_uid');
-              console.log('🔍 Cached Firebase UID:', cachedFirebaseUid);
-              console.log('🔍 Current Firebase UID:', firebaseUser.uid);
-              
-              if (cachedFirebaseUid === firebaseUser.uid) {
-                console.log('🎯 Detected returning user with cached data, syncing changes...');
-                // Remove the cache flag since we're syncing now
-                localStorage.removeItem('elevatr_cached_firebase_uid');
-              } else if (cachedFirebaseUid) {
-                console.log('⚠️ Different Firebase UID detected. Cached:', cachedFirebaseUid, 'Current:', firebaseUser.uid);
-              } else {
-                console.log('ℹ️ No cached Firebase UID found, proceeding with normal sync');
-              }
-              
-              const syncResult = await dataSync.syncLocalDataToFirebase(userData);
-              if (syncResult.success) {
-                console.log('✅ Successfully synced local data to Firebase:', syncResult);
-                setHasLocalDataToSync(false);
-              } else {
-                console.error('❌ Sync failed:', syncResult.errors);
-                // TODO: Show user notification about sync issues
-              }
-            } catch (error) {
-              console.error('❌ Error during data sync:', error);
-            }
-          }
-        } catch (error) {
-          console.error('❌ Error creating/updating user:', error);
-          setUser(null);
-          setFirebaseUser(null);
-        }      } else {
-        console.log('👤 No Firebase user, checking for guest/local user...');
-        // No Firebase user, check for guest user first, then local user
-        try {
-          const existingGuestUser = await guestService.getCurrentGuestUser();
-          if (existingGuestUser) {
-            console.log('👤 Using existing guest user:', existingGuestUser.uid);
-            setUser(existingGuestUser);
-          } else {
-            const localUser = localStorageService.getLocalUser();
-            if (localUser) {
-              console.log('👤 Using local user:', localUser.uid);
-              setUser(localUser);
-            } else {
-              console.log('👤 No guest or local user found, user is null');
-              setUser(null);
-            }
-          }
-        } catch (error) {
-          console.error('❌ Error checking for guest user:', error);
-          // Fallback to local user
-          const localUser = localStorageService.getLocalUser();
-          if (localUser) {
-            console.log('👤 Using local user:', localUser.uid);
-            setUser(localUser);
-          } else {
-            console.log('👤 No local user found, user is null');
-            setUser(null);
-          }
-        }
-        setFirebaseUser(null);
-      }
-      
-      setLoading(false);
-      console.log('✅ Auth state change processing complete');
-    });
-
-    return () => unsubscribe();
-  }, []);  const signInWithGoogle = async () => {
+    const cleanup = initializeAuth();
+    return () => {
+      cleanup.then(unsubscribe => unsubscribe?.());
+    };
+  }, []);
+    const signInWithGoogle = async () => {
     try {
       setLoading(true);
-      console.log('🚀 Starting Google sign-in process...');
+      ensureGoogleProviderConfig();
+      console.log('🚀 Starting popup-only Google sign-in process...');
       
       const mobileInfo = getMobileInfo();
       console.log('📱 Mobile info:', { 
@@ -288,35 +304,89 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         projectId: auth.app.options.projectId,
       });
       
-      // Use enhanced sign-in which handles mobile vs desktop automatically
+      // Use popup-only enhanced sign-in
       const result = await signInWithGoogleEnhanced(auth, googleProvider);
       
-      // For redirect method, the result will be handled by onAuthStateChanged
-      // and handleRedirectResult on page reload
       if (result) {
-        console.log('✅ Sign-in completed immediately with result:', result.user.email);
-      } else {
-        console.log('✅ Sign-in request initiated successfully (redirect mode)');
+        console.log('✅ Sign-in completed successfully:', result.user.email);
       }
       
-      // For redirect flows, we don't set loading to false here as the page will reload
-      // For popup flows, onAuthStateChanged will handle setting loading to false
+      // onAuthStateChanged will handle setting loading to false
     } catch (error: any) {
       console.error('❌ Error signing in with Google:', error);
       console.error('❌ Error details:', {
         code: error.code,
         message: error.message,
-        stack: error.stack
+        instructions: error.instructions
       });
+      setLoading(false);
+      
+      // Handle popup-specific errors
+      if (error.code === 'auth/popup-blocked' && error.instructions) {
+        setPopupInstructions(error.instructions);
+        setShowPopupDialog(true);
+        return; // Don't throw, let user retry
+      }
+      
+      // Convert to user-friendly error for other cases
+      const appError = handleAuthError(error);
+      throw appError;
+    }
+  };
+
+  const signInWithEmailAndPassword = async (email: string, password: string) => {
+    try {
+      setLoading(true);
+      console.log('🚀 Starting email/password sign-in process...');
+      
+      const result = await signInWithEmailAndPasswordEnhanced(auth, email, password);
+      
+      if (result) {
+        console.log('✅ Email/password sign-in completed successfully:', result.user.email);
+      }
+      
+      // onAuthStateChanged will handle setting loading to false
+    } catch (error: any) {
+      console.error('❌ Error signing in with email/password:', error);
       setLoading(false);
       
       // Convert to user-friendly error
       const appError = handleAuthError(error);
       throw appError;
     }
-  };const continueAsGuest = async () => {
+  };
+
+  const signUpWithEmailAndPassword = async (email: string, password: string) => {
+    try {
+      setLoading(true);
+      console.log('🚀 Starting email/password sign-up process...');
+      
+      const result = await createUserWithEmailAndPasswordEnhanced(auth, email, password);
+      
+      if (result) {
+        console.log('✅ Email/password sign-up completed successfully:', result.user.email);
+      }
+      
+      // onAuthStateChanged will handle setting loading to false
+    } catch (error: any) {
+      console.error('❌ Error signing up with email/password:', error);
+      setLoading(false);
+      
+      // Convert to user-friendly error
+      const appError = handleAuthError(error);
+      throw appError;
+    }
+  };
+
+  const retrySignIn = async () => {
+    setShowPopupDialog(false);
+    await signInWithGoogle();
+  };
+  
+  const continueAsGuest = async () => {
     try {
       // Create or get existing guest user
+      setLoading(true);
       let guestUser = await guestService.getCurrentGuestUser();
       if (!guestUser) {
         guestUser = guestService.createGuestUser();
@@ -344,9 +414,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       setUser(guestUser);
       setFirebaseUser(null);
+      
     } catch (error) {
       console.error('Error creating guest user:', error);
-    }  };  const clearDataAndStartFresh = async () => {
+    }finally{
+      setLoading(false);
+      router.push('/');
+    }
+  };  
+    
+    const clearDataAndStartFresh = async () => {
     try {
       console.log('🧹 Starting clear data and start fresh process...');
       
@@ -366,14 +443,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Update the user state
       setUser(freshGuestUser);
       setFirebaseUser(null);
-      
-      console.log('✅ Successfully cleared data and started fresh:', freshGuestUser.uid);
+        console.log('✅ Successfully cleared data and started fresh:', freshGuestUser.uid);
     } catch (error) {
       console.error('❌ Error clearing data and starting fresh:', error);
       throw error;
     }
   };
-
   const handleSignOut = async () => {
     try {
       console.log('🚪 Starting sign-out process...');
@@ -381,8 +456,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('🔥 Firebase user:', firebaseUser?.uid);
       
       if (firebaseUser && user && !localStorageService.isLocalUser(user.uid) && !guestService.isGuestUser(user.uid)) {
-        console.log('🤔 Authenticated user signing out - showing logout options...');
-        
         // Show logout options to let user choose what to do with their data
         setShowLogoutOptions(true);
       } else if (user && guestService.isGuestUser(user.uid)) {
@@ -392,8 +465,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         console.log('👤 Local user sign out');
         // For local users, sign out and continue as guest
-        await signOut(auth);
+        await signOut(auth);        
         await continueAsGuest();
+        
+        // Redirect to login page for clean state
+        router.push('/login');
       }
       
     } catch (error) {
@@ -401,7 +477,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw error;
     }
   };
-
   // Handle logout option choice
   const handleLogoutChoice = async (option: 'delete' | 'convert' | 'keep') => {
     try {
@@ -428,23 +503,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           } else {
             await continueAsGuest();
           }
+        } else if (option === 'delete') {
+          // For delete option, clear user completely and redirect to login          setUser(null);
+          setFirebaseUser(null);
+          console.log('🗑️ All data deleted, redirecting to login...');
+          setShowLogoutOptions(false);
+          router.push('/login');
+          return;
         } else {
-          // For delete or keep options, create a new guest session
+          // For keep option, create a new guest session
           await continueAsGuest();
         }
         
-        setShowLogoutOptions(false);
-        console.log('✅ Sign-out completed successfully');
+        setShowLogoutOptions(false);        console.log('✅ Sign-out completed successfully');
+        
+        // Redirect to login page for clean state
+        router.push('/login');
       } else {
         console.error('❌ Failed to process logout option:', result.error);
         // Fallback to regular sign out
         await signOut(auth);
-        await continueAsGuest();
-        setShowLogoutOptions(false);
+        await continueAsGuest();        setShowLogoutOptions(false);
+        
+        // Still redirect to login page even on error
+        router.push('/login');
       }
     } catch (error) {
-      console.error('❌ Error processing logout choice:', error);
-      setShowLogoutOptions(false);
+      console.error('❌ Error processing logout choice:', error);      setShowLogoutOptions(false);
+      
+      // Redirect to login page even on error for consistency
+      router.push('/login');
       throw error;
     }
   };
@@ -525,6 +613,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isLocalUser,
     isGuest,
     signInWithGoogle,
+    signInWithEmailAndPassword,
+    signUpWithEmailAndPassword,
     signOut: handleSignOut,
     continueAsGuest,
     clearDataAndStartFresh,
@@ -538,6 +628,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setShowLogoutOptions,
     setShowMigrationPrompt,
     handleLogoutChoice,
+    showPopupDialog,
+    popupInstructions,
+    setShowPopupDialog,
+    retrySignIn,
   };
 
   return (

@@ -19,10 +19,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Elevatr - Career Success Tracker",
-  description: "Track your career growth with 15-day and 30-day sprints. Plan, execute, and achieve your professional goals with Elevatr.",
-  keywords: ["career", "productivity", "goal tracking", "sprints", "professional development"],
-  authors: [{ name: "Elevatr Team" }],
+  title: "Elevatr",
+  description: "Stay focused, build momentum, and level up with smart journaling, task tracking, and progress insights.",
+  keywords: ["career", "productivity", "goal tracking", "utilities", "business", "sprints", "professional development"],
+  authors: [{ name: "Raja Fawad" }],
   creator: "Elevatr",
   manifest: "/manifest.json",
   appleWebApp: {
@@ -43,15 +43,15 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
-    title: "Elevatr - Career Success Tracker",
-    description: "Track your career growth with structured sprints",
+    title: "Elevatr",
+    description: "Stay focused, build momentum, and level up with smart journaling, task tracking, and progress insights.",
     siteName: "Elevatr",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Elevatr - Career Success Tracker",
-    description: "Track your career growth with structured sprints",
+    title: "Elevatr",
+    description: "Stay focused, build momentum, and level up with smart journaling, task tracking, and progress insights.",
   },
 };
 

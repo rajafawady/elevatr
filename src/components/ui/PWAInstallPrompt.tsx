@@ -95,14 +95,11 @@ export function PWAInstallPrompt() {
             <div className="flex items-center space-x-2">
               <Download className="h-5 w-5 text-primary" />
               <h3 className="font-semibold text-sm">Install Elevatr</h3>
-            </div>            <ElevatrButton
-              variant="secondary"
-              size="sm"
-              onClick={handleDismiss}
-              className="h-6 w-6 p-0"
-            >
+            </div>            
+            <div className="cursor-pointer" onClick={handleDismiss}>
+              <span className="sr-only">Dismiss</span>
               <X className="h-4 w-4" />
-            </ElevatrButton>
+            </div>
           </div>
           <p className="text-xs text-muted-foreground mb-3">
             Install Elevatr for a faster, native-like experience with offline access.

@@ -1,5 +1,12 @@
-// Custom authentication utilities for handling mobile browser limitations
-import { Auth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, AuthError, getRedirectResult } from 'firebase/auth';
+// Custom authentication utilities for popup-only authentication
+import { 
+  Auth, 
+  GoogleAuthProvider, 
+  signInWithPopup, 
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  AuthError 
+} from 'firebase/auth';
 
 /**
  * Detect mobile browser type and capabilities
@@ -27,38 +34,116 @@ export const getMobileInfo = () => {
 };
 
 /**
- * Enhanced Google Sign-In with mobile-optimized authentication flow
+ * Check if popups are supported and allowed
+ */
+export const checkPopupSupport = (): { supported: boolean; blocked: boolean; message?: string } => {
+  if (typeof window === 'undefined') {
+    return { supported: false, blocked: false, message: 'Not in browser environment' };
+  }
+
+  try {
+    // Test if we can open a popup
+    const testPopup = window.open('about:blank', '_blank', 'width=1,height=1');
+    
+    if (!testPopup) {
+      return { 
+        supported: true, 
+        blocked: true, 
+        message: 'Popups are blocked by your browser. Please allow popups for this site.' 
+      };
+    }
+    
+    if (testPopup.closed) {
+      return { 
+        supported: true, 
+        blocked: true, 
+        message: 'Popups are being blocked. Please check your browser settings.' 
+      };
+    }
+    
+    // Close the test popup
+    testPopup.close();
+    
+    return { supported: true, blocked: false };
+  } catch (error) {
+    return { 
+      supported: false, 
+      blocked: true, 
+      message: 'Browser does not support popups or they are blocked.' 
+    };
+  }
+};
+
+/**
+ * Show popup permission instructions to user
+ */
+export const showPopupInstructions = (): string => {
+  const mobileInfo = getMobileInfo();
+  const userAgent = mobileInfo.userAgent.toLowerCase();
+  
+  if (mobileInfo.isChrome) {
+    return `To allow popups in Chrome:
+1. Click the popup blocked icon in the address bar
+2. Select "Always allow popups from this site"
+3. Click "Done" and try signing in again`;
+  } else if (mobileInfo.isSafari) {
+    return `To allow popups in Safari:
+1. Go to Safari → Preferences → Websites
+2. Select "Pop-up Windows" on the left
+3. Set this site to "Allow"
+4. Try signing in again`;
+  } else if (userAgent.includes('firefox')) {
+    return `To allow popups in Firefox:
+1. Click the shield icon in the address bar
+2. Turn off "Enhanced Tracking Protection" for this site
+3. Or go to Settings → Privacy & Security → Permissions
+4. Try signing in again`;
+  } else if (userAgent.includes('edge')) {
+    return `To allow popups in Edge:
+1. Click the popup blocked icon in the address bar
+2. Select "Always allow" for this site
+3. Try signing in again`;
+  }
+  
+  return `To allow popups:
+1. Look for a popup blocked icon in your address bar
+2. Click it and allow popups for this site
+3. Try signing in again`;
+};
+
+/**
+ * Popup-only Google Sign-In with proper error handling
  */
 export const signInWithGoogleEnhanced = async (auth: Auth, provider: GoogleAuthProvider) => {
   const mobileInfo = getMobileInfo();
   
-  console.log('🚀 Starting enhanced Google sign-in...');
+  console.log('🚀 Starting popup-only Google sign-in...');
   console.log('📱 Device info:', {
     isMobile: mobileInfo.isMobile,
     isInAppBrowser: mobileInfo.isInAppBrowser,
     isPWA: mobileInfo.isPWA,
     userAgent: mobileInfo.userAgent.substring(0, 100) + '...'
   });
+
+  // Check popup support first
+  const popupCheck = checkPopupSupport();
+  console.log('🔍 Popup support check:', popupCheck);
   
-  // For mobile browsers, always use redirect (more reliable)
-  if (mobileInfo.isMobile || mobileInfo.isInAppBrowser || mobileInfo.isPWA) {
-    console.log('📱 Mobile browser detected, using redirect authentication');
-    return await signInWithRedirect(auth, provider);
+  if (popupCheck.blocked) {
+    const error = new Error(popupCheck.message || 'Popups are blocked');
+    (error as any).code = 'auth/popup-blocked';
+    (error as any).instructions = showPopupInstructions();
+    throw error;
   }
 
-  // For desktop, try popup first with fallback to redirect
-  try {
-    console.log('🖥️ Desktop browser detected, attempting popup authentication');
-    
-    // Check if popup is blocked before attempting
-    const testPopup = window.open('about:blank', '_blank', 'width=1,height=1');
-    if (!testPopup || testPopup.closed) {
-      console.log('🚫 Popup blocked, falling back to redirect');
-      throw new Error('Popup blocked');
-    }
-    testPopup.close();
+  if (!popupCheck.supported) {
+    const error = new Error('Your browser does not support popup authentication');
+    (error as any).code = 'auth/popup-not-supported';
+    throw error;
+  }
 
-    console.log('✅ Popup test successful, proceeding with popup auth');
+  try {
+    console.log('✅ Popup support confirmed, proceeding with popup authentication');
     const result = await signInWithPopup(auth, provider);
     console.log('✅ Popup authentication successful:', result.user.email);
     return result;
@@ -66,76 +151,30 @@ export const signInWithGoogleEnhanced = async (auth: Auth, provider: GoogleAuthP
     console.error('❌ Popup authentication failed:', error);
     console.error('❌ Error code:', error.code);
     
-    // Handle specific popup issues
-    if (error.code === 'auth/popup-blocked' || 
-        error.code === 'auth/popup-closed-by-user' ||
-        error.message?.includes('Cross-Origin-Opener-Policy') ||
-        error.message?.includes('Popup blocked')) {
-      console.log('🔄 Popup blocked or closed, falling back to redirect...');
-      return await signInWithRedirect(auth, provider);
+    // Handle specific popup issues with user-friendly messages
+    if (error.code === 'auth/popup-blocked') {
+      error.instructions = showPopupInstructions();
+      throw error;
     }
     
-    // For other errors, still try redirect as fallback
-    if (error.code !== 'auth/cancelled-popup-request') {
-      console.log('🔄 Popup failed with error, trying redirect as fallback...');
-      try {
-        return await signInWithRedirect(auth, provider);
-      } catch (redirectError) {
-        console.error('❌ Both popup and redirect failed:', redirectError);
-        throw redirectError;
-      }
+    if (error.code === 'auth/popup-closed-by-user') {
+      const userError = new Error('Sign-in was cancelled. Please try again.');
+      (userError as any).code = 'auth/popup-closed-by-user';
+      throw userError;
     }
     
-    throw error;
-  }
-};
-
-/**
- * Enhanced redirect result handler with mobile optimizations
- */
-export const handleRedirectResult = async (auth: Auth): Promise<any> => {
-  try {
-    console.log('🔍 Checking for redirect result...');
-    
-    // Add a small delay to ensure auth state is stable
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    const result = await getRedirectResult(auth);
-    
-    if (result?.user) {      console.log('✅ Redirect authentication successful:', result.user.email);
-      console.log('🔥 User UID:', result.user.uid);
-      return result;
-    } else {
-      console.log('ℹ️ No redirect result found (this is normal for non-redirect flows)');
-      return null;
-    }
-  } catch (error: any) {
-    console.error('❌ Error handling redirect result:', error);
-    console.error('❌ Error code:', error.code);
-    console.error('❌ Error message:', error.message);
-    console.error('❌ Full error object:', JSON.stringify(error, null, 2));
-    
-    // Critical errors that should be thrown
-    if (error.code === 'auth/web-storage-unsupported') {
-      throw new Error('Browser storage is disabled. Please enable cookies and local storage.');
-    } else if (error.code === 'auth/operation-not-allowed') {
-      throw new Error('Google sign-in is not enabled. Please contact support.');
-    } else if (error.code === 'auth/unauthorized-domain') {
-      throw new Error('This domain is not authorized for authentication.');
-    } else if (error.code === 'auth/invalid-api-key' || error.code === 'auth/app-not-authorized') {
-      throw new Error('Firebase configuration error. Please check your API keys.');
+    if (error.code === 'auth/cancelled-popup-request') {
+      const userError = new Error('Multiple sign-in attempts detected. Please wait a moment and try again.');
+      (userError as any).code = 'auth/cancelled-popup-request';
+      throw userError;
     }
     
-    // Network and temporary errors - log but continue
-    if (error.code === 'auth/network-request-failed' || 
-        error.code === 'auth/timeout' || 
-        error.code === 'auth/too-many-requests') {
-      console.log('⚠️ Temporary error during redirect result check, continuing with normal flow');
-      return null;
+    // For any other popup-related errors, provide instructions
+    if (error.message?.includes('popup') || error.message?.includes('Cross-Origin-Opener-Policy')) {
+      error.instructions = showPopupInstructions();
+      (error as any).code = 'auth/popup-blocked';
     }
     
-    // For unknown errors, throw them to get proper debugging info
-    console.error('🚨 Unknown redirect error, this needs investigation');
     throw error;
   }
 };
@@ -144,37 +183,24 @@ export const handleRedirectResult = async (auth: Auth): Promise<any> => {
  * Check if popup sign-in is supported in the current environment
  */
 export const isPopupSupported = (): boolean => {
-  try {
-    const mobileInfo = getMobileInfo();
-    
-    // Mobile browsers generally don't support popup authentication reliably
-    if (mobileInfo.isMobile || mobileInfo.isInAppBrowser || mobileInfo.isPWA) {
-      return false;
-    }
-    
-    // Check if we're in a browser environment and not in a testing environment
-    return typeof window !== 'undefined' && 
-           typeof window.open === 'function' && 
-           !window.navigator.userAgent.includes('Chrome-Lighthouse');
-  } catch {
-    return false;
-  }
+  const popupCheck = checkPopupSupport();
+  return popupCheck.supported && !popupCheck.blocked;
 };
 
 /**
  * Get user-friendly error message for authentication errors
  */
 export const getAuthErrorMessage = (error: AuthError | Error): string => {
-  const mobileInfo = getMobileInfo();
-  
   if ('code' in error) {
     switch (error.code) {
       case 'auth/popup-blocked':
-        return mobileInfo.isMobile 
-          ? 'Please allow popups and redirects in your browser settings.'
-          : 'Popup was blocked by your browser. Please allow popups and try again.';
+        return (error as any).instructions || 'Popups are blocked. Please allow popups for this site and try again.';
       case 'auth/popup-closed-by-user':
         return 'Sign-in was cancelled. Please try again.';
+      case 'auth/popup-not-supported':
+        return 'Your browser does not support popup authentication. Please try a different browser.';
+      case 'auth/cancelled-popup-request':
+        return 'Multiple sign-in attempts detected. Please wait a moment and try again.';
       case 'auth/network-request-failed':
         return 'Network error. Please check your connection and try again.';
       case 'auth/too-many-requests':
@@ -187,20 +213,86 @@ export const getAuthErrorMessage = (error: AuthError | Error): string => {
         return 'Google sign-in is not enabled. Please contact support.';
       case 'auth/unauthorized-domain':
         return 'This domain is not authorized for authentication.';
-      case 'auth/cancelled-popup-request':
-        return 'Multiple sign-in attempts detected. Please wait and try again.';
+      // Email/Password specific errors
+      case 'auth/user-not-found':
+        return 'No account found with this email address. Please check your email or sign up for a new account.';
+      case 'auth/wrong-password':
+        return 'Incorrect password. Please try again.';
+      case 'auth/invalid-email':
+        return 'Please enter a valid email address.';
+      case 'auth/email-already-in-use':
+        return 'An account with this email already exists. Please sign in instead.';
+      case 'auth/weak-password':
+        return 'Password is too weak. Please choose a stronger password.';
+      case 'auth/invalid-credential':
+        return 'Invalid email or password. Please check your credentials and try again.';
+      case 'auth/too-many-requests':
+        return 'Too many failed attempts. Please try again later or reset your password.';
       default:
-        return mobileInfo.isMobile 
-          ? 'Sign-in failed. Try refreshing the page and signing in again.'
-          : 'Sign-in failed. Please try again.';
+        return 'Sign-in failed. Please try again.';
     }
   }
   
-  if (error.message?.includes('Cross-Origin-Opener-Policy')) {
-    return mobileInfo.isMobile 
-      ? 'Browser security settings are blocking sign-in. Try refreshing the page.'
-      : 'Browser security settings are blocking sign-in. Please try the redirect method.';
+  if (error.message?.includes('popup') || error.message?.includes('Cross-Origin-Opener-Policy')) {
+    return (error as any).instructions || 'Popup authentication failed. Please allow popups for this site and try again.';
   }
   
   return error.message || 'An unexpected error occurred. Please try again.';
 };
+
+/**
+ * Email/Password Sign-In with proper error handling
+ */
+export const signInWithEmailAndPasswordEnhanced = async (auth: Auth, email: string, password: string) => {
+  try {
+    console.log('🚀 Starting email/password sign-in...');
+    
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    console.log('✅ Email/password authentication successful:', result.user.email);
+    return result;
+  } catch (error: any) {
+    console.error('❌ Email/password authentication failed:', error);
+    throw error;
+  }
+};
+
+/**
+ * Email/Password Sign-Up with proper error handling
+ */
+export const createUserWithEmailAndPasswordEnhanced = async (auth: Auth, email: string, password: string) => {
+  try {
+    console.log('🚀 Starting email/password sign-up...');
+    
+    const result = await createUserWithEmailAndPassword(auth, email, password);
+    console.log('✅ Email/password registration successful:', result.user.email);
+    return result;
+  } catch (error: any) {
+    console.error('❌ Email/password registration failed:', error);
+    throw error;
+  }
+};
+
+/**
+ * Validate email format
+ */
+export const validateEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+/**
+ * Validate password strength
+ */
+export const validatePassword = (password: string): { isValid: boolean; message?: string } => {
+  if (password.length < 6) {
+    return { isValid: false, message: 'Password must be at least 6 characters long' };
+  }
+  
+  if (password.length > 128) {
+    return { isValid: false, message: 'Password must be less than 128 characters' };
+  }
+  
+  return { isValid: true };
+};
+
+

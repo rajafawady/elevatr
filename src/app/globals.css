@@ -414,7 +414,6 @@ body {
 }
 
 .elevatr-button:hover {
-  transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
 }
 

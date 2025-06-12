@@ -1,7 +1,7 @@
 {
-  "name": "Elevatr - Sprint Management & Progress Tracking",
+  "name": "Elevatr",
   "short_name": "Elevatr",
-  "description": "A comprehensive sprint management and progress tracking application with journal, calendar, and analytics features.",
+  "description": "Stay focused, build momentum, and level up with smart journaling, task tracking, and progress insights.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -116,13 +116,13 @@
   "screenshots": [
     {
       "src": "/screenshots/desktop-1.png",
-      "sizes": "1280x720",
+      "sizes": "1918x861",
       "type": "image/png",
       "form_factor": "wide"
     },
     {
       "src": "/screenshots/mobile-1.png",
-      "sizes": "375x812",
+      "sizes": "418x757",
       "type": "image/png",
       "form_factor": "narrow"
     }

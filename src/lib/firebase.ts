@@ -29,9 +29,8 @@ googleProvider.addScope('profile');
 
 // Mobile-optimized custom parameters
 googleProvider.setCustomParameters({
-  prompt: 'select_account',
-  // Remove conflicting display parameter for redirect compatibility
-  // display: 'popup', // This conflicts with redirect mode
+  prompt: 'select_account',  // Remove display parameter for popup mode compatibility
+  // display: 'popup', // Standard popup display mode
   // Ensure we get a refresh token for better session management
   access_type: 'online',
   // Help with mobile browser compatibility

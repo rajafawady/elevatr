@@ -2,6 +2,7 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import { AppLayout } from './AppLayout';
+import { LandingLayout } from './LandingLayout';
 import { NavigationProgress } from '@/components/ui/NavigationProgress';
 import { NavigationSync } from './NavigationSync';
 import { NavigationPreloader } from './NavigationPreloader';
@@ -30,12 +31,11 @@ export function LayoutWrapper({ children }: LayoutWrapperProps) {
     setShowMigrationPrompt,
     migrateGuestData
   } = useAuth();
-  const pathname = usePathname();
-  const { errors, removeError, retryError, errorItems } = useGlobalErrorHandler();
-  
+  const pathname = usePathname();  const { errors, removeError, retryError, errorItems } = useGlobalErrorHandler();
   // Don't show AppLayout on login page or when loading
-  const isLoginPage = pathname === '/' && !user;
-  const shouldShowAppLayout = user && !loading && !isLoginPage;
+  const isLoginPage = pathname === '/login';
+  const isLandingPage = pathname === '/landing';
+  const shouldShowAppLayout = user && !loading && !isLoginPage && !isLandingPage;
   
   // Handle retry by error item
   const handleRetry = (error: AppError) => {
@@ -88,6 +88,44 @@ export function LayoutWrapper({ children }: LayoutWrapperProps) {
         {process.env.NODE_ENV === 'development' && <PerformanceIndicator />} */}
         {children}
       </AppLayout>
+    );
+  }
+  // Show landing page layout when on landing page or login page
+  if (isLandingPage || isLoginPage) {
+    return (
+      <LandingLayout>
+        <NetworkStatus />
+        <ErrorToast 
+          errors={errors} 
+          onRetry={handleRetry} 
+          onDismiss={handleDismiss} 
+        />
+        <NavigationSync />
+        <NavigationPreloader />
+        <NavigationStatePersistence />
+        <NavigationProgress />
+        <PWAInstallPrompt />
+        {/* Guest Mode UI Components for non-authenticated state */}
+        {showLogoutOptions && (
+          <LogoutOptions
+            onChoice={handleLogoutChoice}
+            onCancel={() => setShowLogoutOptions(false)}
+            isVisible={showLogoutOptions}
+            userDisplayName={user?.displayName}
+          />
+        )}
+        {showMigrationPrompt && guestDataSummary && (
+          <MigrationPrompt
+            migrationData={guestDataSummary}
+            onAccept={() => migrateGuestData(true).then(() => setShowMigrationPrompt(false))}
+            onDecline={() => {
+              migrateGuestData(false).then(() => setShowMigrationPrompt(false));
+            }}
+            isVisible={showMigrationPrompt}
+          />
+        )}
+        {children}
+      </LandingLayout>
     );
   }
 
