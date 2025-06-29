@@ -63,10 +63,12 @@ export function Dashboard() {
       {/* Welcome Section */}
       <div className="mb-8">
         <h1 className="text-3xl md:text-4xl font-bold bg-clip-text mb-3">
-          Welcome back, {user?.displayName?.split(' ')[0] || 'there'}! 👋
-        </h1>        <p className="text-lg text-muted-foreground leading-relaxed">
+          Hi, {user?.displayName?.split(' ')[0] || 'there'}!
+        </h1>        
+        <p className="text-lg text-muted-foreground leading-relaxed">
           Here&apos;s an overview of your career sprint progress
-        </p>{/* Local User Notification */}
+        </p>
+        {/* Local User Notification */}
         {isLocalUser && (
           <div className="mt-6">
             <ElevatrNotification
@@ -98,10 +100,8 @@ export function Dashboard() {
             />
           </div>
         )}
-      </div>      {/* Stats Overview with AI Enhancement */}
-      <div className="elevatr-animate-fade-in-up">
-        <StatsOverview userProgress={userProgress} />
-      </div>
+      </div>      
+
 
       {/* AI Intelligence Preview Section */}
       {hasAIData && (

@@ -21,8 +21,7 @@ export function TodayJournal() {
       const currentDate = new Date();
       const diffTime = Math.abs(currentDate.getTime() - startDate.getTime());
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
-      return diffDays <= activeSprint.duration ? diffDays.toString() : null;
+      return diffDays <= activeSprint.duration ? `Day ${diffDays}` : null;
     } catch (error) {
       console.error('Error calculating current day:', error);
       return null;
@@ -32,8 +31,8 @@ export function TodayJournal() {
   const getTodayProgress = () => {
     const currentDay = getCurrentDay();
     if (!currentDay || !activeSprint || !userProgress) return 0;
-
     const day = activeSprint.days.find(d => d.day === currentDay);
+    console.log('Current Day:', currentDay, 'Day Data:', day);
     if (!day) return 0;
 
     const totalTasks = day.coreTasks.length + day.specialTasks.length;
@@ -50,6 +49,7 @@ export function TodayJournal() {
     
     return userProgress.journalEntries.find(entry => entry.dayId === currentDay);
   };
+
   if (loading) {
     return (
       <ElevatrCard variant="glass" className="p-6">
@@ -74,7 +74,6 @@ export function TodayJournal() {
     );
   }
   const currentDay = getCurrentDay();
-  const todayProgress = getTodayProgress();
   const todayJournal = getTodayJournalEntry();
 
   if (!activeSprint || !currentDay) {
@@ -125,20 +124,12 @@ export function TodayJournal() {
         </ElevatrCardTitle>
       </ElevatrCardHeader>
       <ElevatrCardContent className="space-y-4">
-        {/* Today's Progress */}
-        <div className="glass-panel p-4">
-          <ElevatrProgress 
-            value={todayProgress} 
-            variant="journal" 
-            showPercentage 
-            animated 
-          />
-        </div>
 
         {/* Journal Content */}
         {todayJournal ? (
           <div className="space-y-3">
-            <div className="glass-panel p-4">              <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+            <div className="glass-panel p-4">              
+              <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-journal" />
                 Today&apos;s Reflection
               </h4>
