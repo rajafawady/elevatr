@@ -25,7 +25,6 @@ interface CalendarDay {
 
 export default function CalendarPage() {
   const { user } = useAuth();
-  const [loading, setLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [calendarDays, setCalendarDays] = useState<CalendarDay[]>([]);
   const [selectedDay, setSelectedDay] = useState<{ sprintDay: string; date: Date } | null>(null);
@@ -33,26 +32,13 @@ export default function CalendarPage() {
   // Use global sprint and user progress stores
   const activeSprint = useSprintStore(state => state.activeSprint);
   const loadActiveSprint = useSprintStore(state => state.loadActiveSprint);
-  const loadUserProgress = useUserProgressStore(state => state.loadUserProgress);
-  const userProgress = useUserProgressStore(state => state.userProgress);
+  const { userProgress, loading, loadUserProgress } = useUserProgressStore();
 
   useEffect(() => {
-    const loadData = async () => {
-      if (!user) return;
-      try {
-        setLoading(true);
-        await loadActiveSprint(user.uid);
-        if (activeSprint) {
-          await loadUserProgress(user.uid, activeSprint.id);
-        }
-      } catch (error) {
-        console.error('Error loading calendar data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadData();
-  }, [user, loadActiveSprint, loadUserProgress]);
+    if (user?.uid && activeSprint?.id) {
+      loadUserProgress(user.uid, activeSprint.id);
+    }
+  }, [user?.uid, activeSprint?.id, loadUserProgress]);
 
   const generateCalendarDays = useCallback(() => {
     const year = currentDate.getFullYear();

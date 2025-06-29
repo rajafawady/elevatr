@@ -35,7 +35,7 @@ export interface Sprint {
   duration: 15 | 30;
   startDate: string;
   endDate: string;
-  status?: 'active' | 'completed' | 'paused';
+  status?: 'active' | 'completed' | 'paused' | 'planned';
   days: Day[];
   createdAt: string;
   updatedAt: string;

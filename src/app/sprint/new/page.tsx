@@ -95,7 +95,8 @@ export default function NewSprintPage() {
   const handleCreateSprint = async (customStartDate?: string) => {
     if (!user || !sprintTitle.trim()) return;
 
-    try {      // Use uploaded data if available, otherwise create basic structure
+    try {      
+      // Use uploaded data if available, otherwise create basic structure
       let days;
       if (uploadedSprintData && Array.isArray(uploadedSprintData)) {
         // Transform uploaded data to match Day interface
@@ -120,7 +121,8 @@ export default function NewSprintPage() {
             coreTasks,
             specialTasks,
           };
-        });} else {
+        });
+      } else {
         // Create days structure with default tasks for manual entry
         days = Array.from({ length: sprintType === '15-day' ? 15 : 30 }, (_, i) => {
           const startDate = new Date(customStartDate || new Date().toISOString().split('T')[0]);
@@ -130,15 +132,14 @@ export default function NewSprintPage() {
             day: `Day ${i + 1}`,
             date: dayDate.toISOString().split('T')[0], // YYYY-MM-DD format
             coreTasks: [
-              { category: 'Learning', description: 'Complete daily learning activity' },
-              { category: 'Networking', description: 'Connect with one professional contact' }
             ],
             specialTasks: [
-              'Review and plan next day activities'
             ],
           };
         });
-      }const sprintData: Omit<Sprint, 'id' | 'createdAt' | 'updatedAt'> = {
+      }
+
+      const sprintData: Omit<Sprint, 'id' | 'createdAt' | 'updatedAt'> = {
         title: sprintTitle,
         description: sprintDescription,
         userId: user.uid,
@@ -149,13 +150,14 @@ export default function NewSprintPage() {
           startDate.setDate(startDate.getDate() + (days.length - 1));
           return startDate.toISOString().split('T')[0];
         })(),
-        status: 'active',
+        status: customStartDate ? 'planned' : 'active',
         days,
       };
 
-      const sprintId = await createSprint(sprintData);
-      router.push(`/sprint/${sprintId}`);
-    } catch (error) {      console.error('Error creating sprint:', error);
+      await createSprint(sprintData);
+      router.push(`/sprint`);
+    } catch (error) {
+      console.error('Error creating sprint:', error);
       alert('Error creating sprint. Please try again.');
     }
   };

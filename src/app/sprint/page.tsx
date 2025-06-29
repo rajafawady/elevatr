@@ -10,36 +10,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { Plus, Calendar, Target, Brain, TrendingUp, BarChart3 } from "lucide-react";
 import { PredictiveEngine } from "@/services/predictiveEngine";
-import { useUserProgressStore } from "@/stores";
+import { useUserProgressStore, useSprintStore } from "@/stores";
 import Link from "next/link";
 
 export default function SprintsPage() {
-  const [sprints, setSprints] = useState<Sprint[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {  sprints, loading } = useSprintStore();
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
   const { userProgress } = useUserProgressStore();
-  const router = useRouter();
-
-  useEffect(() => {
-    const loadSprints = async () => {
-      if (!user?.uid) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setError(null);
-        const userSprints = await getSprintsByUser(user.uid);
-        setSprints(userSprints);
-      } catch (err) {
-        console.error("Error loading sprints:", err);
-        setError("Failed to load sprints. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };    loadSprints();
-  }, [user]);
 
   // Generate AI predictions for active sprints
   const getSprintPrediction = (sprint: Sprint) => {
@@ -99,7 +77,8 @@ export default function SprintsPage() {
     );
   }
   return (
-    <div className="mt-4 p-8">      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 elevatr-animate-fade-in">
+    <div className="mt-4 p-8">      
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 elevatr-animate-fade-in">
         <div>
           <h1 className="text-3xl font-bold elevatr-gradient-text">My Sprints</h1>
           <p className="text-muted-foreground mt-2">

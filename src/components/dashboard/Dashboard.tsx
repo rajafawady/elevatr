@@ -1,7 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { StatsOverview } from '@/components/dashboard/StatsOverview';
 import { ActiveSprint } from '@/components/dashboard/ActiveSprint';
 import { QuickActions } from '@/components/dashboard/QuickActions';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
@@ -21,7 +20,6 @@ export function Dashboard() {
   const { tasks, loading: tasksLoading } = useTaskStore();
   const { globalLoading } = useAppStore();
   const router = useRouter();
-  const [showAdvancedInsights, setShowAdvancedInsights] = useState(false);
 
   // Load data when component mounts or user changes
   useEffect(() => {
