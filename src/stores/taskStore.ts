@@ -5,6 +5,7 @@ import {
   getTasksByUser, 
   updateTask
 } from '@/services/firebase';
+import * as localStorageService from '@/services/localStorage';
 
 interface TaskState {
   // State
@@ -45,7 +46,19 @@ export const useTaskStore = create<TaskState>()(
           set({ loading: true, error: null });
           
           try {
-            const tasks = await getTasksByUser(userId);
+            let tasks: Task[];
+            
+            if (localStorageService.isLocalUser(userId)) {
+              // For local users, tasks are typically derived from sprint progress
+              // Since we don't have a getLocalTasks function, we'll return empty array
+              // This allows the progress page to still show sprint-only data
+              tasks = [];
+              console.log('Local user detected - returning empty tasks array');
+            } else {
+              // Load from Firebase
+              tasks = await getTasksByUser(userId);
+            }
+            
             set({ 
               tasks, 
               loading: false,

@@ -19,10 +19,11 @@ interface SprintState {
   
   // Actions
   loadSprints: (userId: string) => Promise<void>;
-  loadActiveSprint: (userId: string) => Promise<void>;
+  loadActiveSprint: (userId: string, forceRefresh?: boolean) => Promise<void>;
   loadSprint: (sprintId: string) => Promise<Sprint | null>;
   addSprint: (sprint: Omit<Sprint, 'id'>) => Promise<string>;
   updateSprintOptimistic: (sprintId: string, updates: Partial<Sprint>) => Promise<void>;
+  clearActiveSprint: () => void;
   clearError: () => void;
   clearSprints: () => void;
 }
@@ -70,11 +71,22 @@ export const useSprintStore = create<SprintState>()(
             });
           }
         },        // Load active sprint for a user
-        loadActiveSprint: async (userId: string) => {
+        loadActiveSprint: async (userId: string, forceRefresh: boolean = false) => {
           const state = get();
           
-          // Return cached data if available
-          if (state.activeSprint) {
+          // Helper function to check if a sprint is currently active based on dates
+          const isSprintCurrentlyActive = (sprint: Sprint | null): boolean => {
+            if (!sprint) return false;
+            
+            const today = new Date().toISOString().split('T')[0];
+            const statusActive = !sprint.status || sprint.status === 'active';
+            const dateActive = today >= sprint.startDate && today <= sprint.endDate;
+            
+            return statusActive && dateActive;
+          };
+          
+          // Return cached data if available and currently active, unless forced refresh
+          if (!forceRefresh && state.activeSprint && isSprintCurrentlyActive(state.activeSprint)) {
             return;
           }
           
@@ -226,6 +238,11 @@ export const useSprintStore = create<SprintState>()(
             set({ error: 'Failed to update sprint' });
             throw error;
           }
+        },
+
+        // Clear active sprint cache
+        clearActiveSprint: () => {
+          set({ activeSprint: null });
         },
 
         // Clear error

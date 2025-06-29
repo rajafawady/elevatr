@@ -2,9 +2,11 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useDataSync } from '@/hooks/useDataSync';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { ElevatrCard } from '@/components/ui/ElevatrCard';
 import { ElevatrBadge } from '@/components/ui/ElevatrBadge';
+import { ElevatrButton } from '@/components/ui/ElevatrButton';
 import { 
   Target, 
   Award,
@@ -45,8 +47,10 @@ interface DailyProgress {
 }
 
 export default function ProgressPage() {
-  const { sprints, loading: sprintLoading } = useSprintStore();
-  const { tasks, loading: taskLoading } = useTaskStore();
+  const { user } = useAuth();
+  useDataSync(); // Initialize data loading
+  const { sprints, loading: sprintLoading, error: sprintError } = useSprintStore();
+  const { tasks, loading: taskLoading, error: taskError } = useTaskStore();
   const [stats, setStats] = useState<ProgressStats | null>(null);
   const [dailyProgress, setDailyProgress] = useState<DailyProgress[]>([]);
   const [recentSprints, setRecentSprints] = useState<Sprint[]>([]);
@@ -54,27 +58,39 @@ export default function ProgressPage() {
   const loading = sprintLoading || taskLoading;
 
   const loadProgressData = useCallback(async () => {
-    // Calculate statistics
-    const progressStats = calculateStats(sprints, tasks);
-    setStats(progressStats);
+    try {
+      console.log('Loading progress data...', { 
+        sprintsCount: sprints.length, 
+        tasksCount: tasks.length,
+        userId: user?.uid 
+      });
 
-    // Calculate daily progress
-    const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90;
-    const daily = calculateDailyProgress(tasks, days);
-    setDailyProgress(daily);
+      // Calculate statistics
+      const progressStats = calculateStats(sprints, tasks);
+      console.log('Calculated stats:', progressStats);
+      setStats(progressStats);
 
-    // Get recent sprints
-    const recent = sprints
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, 5);
-    setRecentSprints(recent);
-  }, [sprints, tasks, timeRange]);
+      // Calculate daily progress
+      const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90;
+      const daily = calculateDailyProgress(tasks, days);
+      setDailyProgress(daily);
+
+      // Get recent sprints
+      const recent = sprints
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .slice(0, 5);
+      setRecentSprints(recent);
+    } catch (error) {
+      console.error('Error in loadProgressData:', error);
+      setStats(null);
+    }
+  }, [sprints, tasks, timeRange, user?.uid]);
 
   useEffect(() => {
-    if (sprints.length > 0 && tasks.length > 0) {
+    if (user && (sprints.length > 0 || tasks.length > 0)) {
       loadProgressData();
     }
-  }, [sprints, tasks, loadProgressData]);
+  }, [user, sprints, tasks, loadProgressData]);
 
   const calculateStats = (sprints: Sprint[], tasks: Task[]): ProgressStats => {
     const completedSprints = sprints.filter(s => s.status === 'completed');
@@ -155,13 +171,71 @@ export default function ProgressPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <LoadingSpinner size="lg" />
+        <div className="text-center">
+          <LoadingSpinner size="lg" />
+          <p className="mt-4 text-muted-foreground">Loading your progress data...</p>
+        </div>
       </div>
     );
   }
 
+  // Check if user is authenticated
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-lg font-medium text-muted-foreground">Please sign in to view your progress</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Check for errors
+  if (sprintError || taskError) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center space-y-4">
+          <div className="p-6 rounded-lg bg-destructive/10 border border-destructive/20">
+            <h2 className="text-lg font-semibold text-destructive mb-2">Error Loading Progress Data</h2>
+            {sprintError && <p className="text-sm text-destructive/80">Sprint Error: {sprintError}</p>}
+            {taskError && <p className="text-sm text-destructive/80">Task Error: {taskError}</p>}
+            <p className="text-sm text-muted-foreground mt-2">Please try refreshing the page or contact support if the issue persists.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Check if data is available
+  if (!loading && (!stats || (sprints.length === 0 && tasks.length === 0))) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center space-y-4">
+          <div className="p-4 rounded-lg bg-muted/50">
+            <Target className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
+            <p className="text-lg font-medium text-muted-foreground">No progress data yet</p>
+            <p className="text-sm text-muted-foreground">Start by creating your first sprint to see your progress here</p>
+            <div className="mt-4">
+              <ElevatrButton 
+                onClick={() => window.location.href = '/sprint'}
+                className="elevatr-gradient-primary"
+              >
+                Create Your First Sprint
+              </ElevatrButton>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Ensure stats exists before rendering
   if (!stats) {
-    return <div>Error loading progress data</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
   }
 
   const maxDailyTasks = Math.max(...dailyProgress.map(d => d.tasksCompleted), 1);

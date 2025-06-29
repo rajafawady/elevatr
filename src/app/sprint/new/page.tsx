@@ -27,7 +27,7 @@ export default function NewSprintPage() {
   const { user } = useAuth();
   const router = useRouter();
   const { createSprint, loading } = useOptimisticSprints();
-  const { activeSprint, loadActiveSprint } = useSprintStore();
+  const { activeSprint, loadActiveSprint, clearActiveSprint } = useSprintStore();
   const [sprintType, setSprintType] = useState<'15-day' | '30-day'>('15-day');
   const [sprintTitle, setSprintTitle] = useState('');
   const [sprintDescription, setSprintDescription] = useState('');
@@ -37,9 +37,11 @@ export default function NewSprintPage() {
   // Load active sprint when component mounts
   useEffect(() => {
     if (user) {
-      loadActiveSprint(user.uid);
+      // Clear cached active sprint first, then force refresh to get the latest status
+      clearActiveSprint();
+      loadActiveSprint(user.uid, true);
     }
-  }, [user, loadActiveSprint]);
+  }, [user, loadActiveSprint, clearActiveSprint]);
 
   // Check if there's an active sprint based on dates and status
   const isSprintCurrentlyActive = (sprint: Sprint | null): boolean => {
