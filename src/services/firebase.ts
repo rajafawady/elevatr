@@ -145,6 +145,29 @@ export const createSprint = async (userId: string, sprintData: Omit<Sprint, 'id'
       updatedAt: now,
     };
 
+    // If the new sprint is active, mark previous active sprints as completed
+    if (sprint.status === 'active') {
+      const sprintsQuery = query(
+        collection(db, 'sprints'),
+        where('userId', '==', userId),
+        where('status', '==', 'active')
+      );
+      
+      const activeSprintsSnap = await getDocs(sprintsQuery);
+      const batch = writeBatch(db);
+      
+      activeSprintsSnap.docs.forEach(doc => {
+        batch.update(doc.ref, { 
+          status: 'completed',
+          updatedAt: now
+        });
+      });
+      
+      if (!activeSprintsSnap.empty) {
+        await batch.commit();
+      }
+    }
+
     await setDoc(sprintRef, sprint);
 
     // Create initial user progress with retry logic
@@ -582,8 +605,22 @@ export const getActiveSprint = async (userId: string): Promise<Sprint | null> =>
       return null;
     }
     
-    // Return the most recent sprint (assuming it's the active one)
-    return sprintsSnap.docs[0].data() as Sprint;
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Look for explicitly active sprints first
+    for (const doc of sprintsSnap.docs) {
+      const sprint = doc.data() as Sprint;
+      
+      // Check if sprint is active by status and within date range
+      if ((!sprint.status || sprint.status === 'active') &&
+          sprint.startDate <= today && 
+          sprint.endDate >= today) {
+        return sprint;
+      }
+    }
+    
+    // If no explicitly active sprint found, return null
+    return null;
   } catch (error) {
     return handleFirebaseError(error, 'get active sprint');
   }

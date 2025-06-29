@@ -139,6 +139,16 @@ export const addLocalSprint = (userId: string, sprint: Omit<Sprint, 'id'>): Spri
       updatedAt: new Date().toISOString(),
     };
 
+    // If the new sprint is active, mark previous active sprints as completed
+    if (newSprint.status === 'active') {
+      sprints.forEach(existingSprint => {
+        if (existingSprint.status === 'active') {
+          existingSprint.status = 'completed';
+          existingSprint.updatedAt = new Date().toISOString();
+        }
+      });
+    }
+
     sprints.push(newSprint);
     saveLocalSprints(userId, sprints);
     return newSprint;
@@ -182,10 +192,16 @@ export const deleteLocalSprint = (userId: string, sprintId: string): void => {
 export const getLocalActiveSprint = (userId: string): Sprint | null => {
   try {
     const sprints = getLocalSprints(userId);
-    // Return the most recent sprint as active
-    return sprints.sort((a, b) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    )[0] || null;
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Look for explicitly active sprints first
+    const activeSprint = sprints.find(sprint => 
+      (!sprint.status || sprint.status === 'active') &&
+      sprint.startDate <= today && 
+      sprint.endDate >= today
+    );
+    
+    return activeSprint || null;
   } catch (error) {
     console.error('Error getting local active sprint:', error);
     return null;

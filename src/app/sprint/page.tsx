@@ -8,7 +8,9 @@ import { Sprint } from "@/types";
 import { getSprintsByUser } from "@/services/firebase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import { Plus, Calendar, Target } from "lucide-react";
+import { Plus, Calendar, Target, Brain, TrendingUp, BarChart3 } from "lucide-react";
+import { PredictiveEngine } from "@/services/predictiveEngine";
+import { useUserProgressStore } from "@/stores";
 import Link from "next/link";
 
 export default function SprintsPage() {
@@ -16,6 +18,8 @@ export default function SprintsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
+  const { userProgress } = useUserProgressStore();
+  const router = useRouter();
 
   useEffect(() => {
     const loadSprints = async () => {
@@ -34,10 +38,20 @@ export default function SprintsPage() {
       } finally {
         setLoading(false);
       }
-    };
-
-    loadSprints();
+    };    loadSprints();
   }, [user]);
+
+  // Generate AI predictions for active sprints
+  const getSprintPrediction = (sprint: Sprint) => {
+    if (sprint.status !== 'active' || !userProgress) return null;
+    
+    try {
+      return PredictiveEngine.predictSprintOutcome(sprint, userProgress, userProgress ? [userProgress] : []);
+    } catch (error) {
+      console.error('Error generating sprint prediction:', error);
+      return null;
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -85,20 +99,27 @@ export default function SprintsPage() {
     );
   }
   return (
-    <div className="mt-4 p-8">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 elevatr-animate-fade-in">
+    <div className="mt-4 p-8">      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 elevatr-animate-fade-in">
         <div>
           <h1 className="text-3xl font-bold elevatr-gradient-text">My Sprints</h1>
           <p className="text-muted-foreground mt-2">
             Manage your career development sprints and track your progress
           </p>
         </div>
-        <Link href="/sprint/new">
-          <ElevatrButton variant="motivation" className="mt-4 sm:mt-0">
-            <Plus className="mr-2 h-4 w-4" />
-            New Sprint
-          </ElevatrButton>
-        </Link>
+        <div className="flex gap-3 mt-4 sm:mt-0">
+          <Link href="/insights">
+            <ElevatrButton variant="secondary" className="flex items-center gap-2">
+              <Brain className="h-4 w-4" />
+              Advanced Insights
+            </ElevatrButton>
+          </Link>
+          <Link href="/sprint/new">
+            <ElevatrButton variant="motivation">
+              <Plus className="mr-2 h-4 w-4" />
+              New Sprint
+            </ElevatrButton>
+          </Link>
+        </div>
       </div>
 
       {error && (
@@ -151,12 +172,43 @@ export default function SprintsPage() {
                     <span>
                       {formatDate(sprint.startDate)} - {formatDate(sprint.endDate)}
                     </span>
-                  </div>
-
-                  <div className="flex items-center text-sm text-muted-foreground">
+                  </div>                  <div className="flex items-center text-sm text-muted-foreground">
                     <Target className="mr-2 h-4 w-4" />
                     <span>{sprint.duration} day sprint</span>
                   </div>
+
+                  {/* AI Prediction Section */}
+                  {sprint.status === 'active' && (() => {
+                    const prediction = getSprintPrediction(sprint);
+                    return prediction ? (
+                      <div className="mt-4 p-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 rounded-lg border border-blue-200/50 dark:border-blue-800/30">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Brain className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                          <span className="text-sm font-medium text-blue-700 dark:text-blue-300">AI Prediction</span>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <TrendingUp className="h-3 w-3 text-green-600 dark:text-green-400" />
+                            <span className="text-xs text-muted-foreground">
+                              Success Rate: <span className="font-medium text-green-600 dark:text-green-400">{Math.round(prediction.successProbability * 100)}%</span>
+                            </span>
+                          </div>                          <div className="flex items-center gap-2">
+                            <BarChart3 className="h-3 w-3 text-purple-600 dark:text-purple-400" />
+                            <span className="text-xs text-muted-foreground">
+                              Confidence: <span className="font-medium text-purple-600 dark:text-purple-400">{Math.round(prediction.confidenceLevel * 100)}%</span>
+                            </span>
+                          </div>
+                          {prediction.recommendedActions && prediction.recommendedActions.length > 0 && (
+                            <div className="mt-2 pt-2 border-t border-blue-200/30 dark:border-blue-800/30">
+                              <p className="text-xs text-blue-700 dark:text-blue-300 line-clamp-2">
+                                💡 {prediction.recommendedActions[0]}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ) : null;
+                  })()}
 
                   <div className="pt-4 flex gap-2">
                     <Link href={`/sprint/${sprint.id}`} className="flex-1">

@@ -1,14 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { ElevatrButton } from '@/components/ui/ElevatrButton';
 import { ElevatrCard } from '@/components/ui/ElevatrCard';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useOptimisticSprints } from '@/hooks/useDataSync';
+import { useSprintStore } from '@/stores';
 import { Sprint } from '@/types';
-import { ArrowLeft, Upload, Plus, Calendar, Target } from 'lucide-react';
+import { ArrowLeft, Upload, Plus, Calendar, Target, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 
 interface UploadedDayData {
@@ -26,9 +27,70 @@ export default function NewSprintPage() {
   const { user } = useAuth();
   const router = useRouter();
   const { createSprint, loading } = useOptimisticSprints();
+  const { activeSprint, loadActiveSprint } = useSprintStore();
   const [sprintType, setSprintType] = useState<'15-day' | '30-day'>('15-day');
   const [sprintTitle, setSprintTitle] = useState('');
-  const [sprintDescription, setSprintDescription] = useState('');  const handleCreateSprint = async () => {
+  const [sprintDescription, setSprintDescription] = useState('');
+  const [showActiveSprintDialog, setShowActiveSprintDialog] = useState(false);
+  const [uploadedSprintData, setUploadedSprintData] = useState<UploadedDayData[] | null>(null);
+
+  // Load active sprint when component mounts
+  useEffect(() => {
+    if (user) {
+      loadActiveSprint(user.uid);
+    }
+  }, [user, loadActiveSprint]);
+
+  // Check if there's an active sprint based on dates and status
+  const isSprintCurrentlyActive = (sprint: Sprint | null): boolean => {
+    if (!sprint) return false;
+    
+    const today = new Date().toISOString().split('T')[0];
+    const sprintStart = sprint.startDate;
+    const sprintEnd = sprint.endDate;
+    
+    // A sprint is active if:
+    // 1. Status is 'active' OR status is undefined (for backward compatibility)
+    // 2. Today's date is between start and end dates (inclusive)
+    const statusActive = !sprint.status || sprint.status === 'active';
+    const dateActive = today >= sprintStart && today <= sprintEnd;
+    
+    return statusActive && dateActive;
+  };
+
+  const handleCreateSprintClick = () => {
+    if (isSprintCurrentlyActive(activeSprint)) {
+      setShowActiveSprintDialog(true);
+    } else {
+      handleCreateSprint();
+    }
+  };
+  const handleCreateSprintAfterCurrent = async () => {
+    if (activeSprint) {
+      // Calculate the day after current sprint ends
+      const currentEndDate = new Date(activeSprint.endDate);
+      currentEndDate.setDate(currentEndDate.getDate() + 1);
+      const newStartDate = currentEndDate.toISOString().split('T')[0];
+      
+      setShowActiveSprintDialog(false);
+      
+      try {
+        await handleCreateSprint(newStartDate);
+        // Show success message for scheduled sprint
+        const scheduledDate = currentEndDate.toLocaleDateString('en-US', { 
+          weekday: 'long', 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        });
+        alert(`Sprint successfully scheduled to start on ${scheduledDate}!`);
+      } catch (error) {
+        // Error will be handled by handleCreateSprint
+      }
+    }
+  };
+
+  const handleCreateSprint = async (customStartDate?: string) => {
     if (!user || !sprintTitle.trim()) return;
 
     try {      // Use uploaded data if available, otherwise create basic structure
@@ -36,11 +98,10 @@ export default function NewSprintPage() {
       if (uploadedSprintData && Array.isArray(uploadedSprintData)) {
         // Transform uploaded data to match Day interface
         days = uploadedSprintData.map((day, index) => {
-          const date = day.date || (() => {
-            const d = new Date();
-            d.setDate(d.getDate() + index);
-            return d.toISOString().split('T')[0];
-          })();
+          const startDate = new Date(customStartDate || new Date().toISOString().split('T')[0]);
+          const dayDate = new Date(startDate);
+          dayDate.setDate(dayDate.getDate() + index);
+          const date = day.date || dayDate.toISOString().split('T')[0];
           
           // Separate core and special tasks
           const coreTasks = day.tasks
@@ -60,11 +121,12 @@ export default function NewSprintPage() {
         });} else {
         // Create days structure with default tasks for manual entry
         days = Array.from({ length: sprintType === '15-day' ? 15 : 30 }, (_, i) => {
-          const date = new Date();
-          date.setDate(date.getDate() + i);
+          const startDate = new Date(customStartDate || new Date().toISOString().split('T')[0]);
+          const dayDate = new Date(startDate);
+          dayDate.setDate(dayDate.getDate() + i);
           return {
             day: `Day ${i + 1}`,
-            date: date.toISOString().split('T')[0], // YYYY-MM-DD format
+            date: dayDate.toISOString().split('T')[0], // YYYY-MM-DD format
             coreTasks: [
               { category: 'Learning', description: 'Complete daily learning activity' },
               { category: 'Networking', description: 'Connect with one professional contact' }
@@ -74,28 +136,27 @@ export default function NewSprintPage() {
             ],
           };
         });
-      }      const sprintData: Omit<Sprint, 'id' | 'createdAt' | 'updatedAt'> = {
+      }const sprintData: Omit<Sprint, 'id' | 'createdAt' | 'updatedAt'> = {
         title: sprintTitle,
         description: sprintDescription,
         userId: user.uid,
         duration: days.length <= 15 ? 15 : 30,
-        startDate: new Date().toISOString().split('T')[0],
+        startDate: customStartDate || new Date().toISOString().split('T')[0],
         endDate: (() => {
-          const endDate = new Date();
-          endDate.setDate(endDate.getDate() + (days.length - 1));
-          return endDate.toISOString().split('T')[0];
+          const startDate = new Date(customStartDate || new Date().toISOString().split('T')[0]);
+          startDate.setDate(startDate.getDate() + (days.length - 1));
+          return startDate.toISOString().split('T')[0];
         })(),
+        status: 'active',
         days,
       };
 
       const sprintId = await createSprint(sprintData);
       router.push(`/sprint/${sprintId}`);
-    } catch (error) {
-      console.error('Error creating sprint:', error);
+    } catch (error) {      console.error('Error creating sprint:', error);
       alert('Error creating sprint. Please try again.');
     }
   };
-  const [uploadedSprintData, setUploadedSprintData] = useState<UploadedDayData[] | null>(null);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -302,8 +363,19 @@ export default function NewSprintPage() {
                     {sprintDescription || 'Sprint description will appear here'}
                   </p>
                 </div>
-                
-                <div className="bg-muted/30 rounded-xl p-4 sm:p-5 space-y-3">
+                  <div className="bg-muted/30 rounded-xl p-4 sm:p-5 space-y-3">
+                  {isSprintCurrentlyActive(activeSprint) && (
+                    <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/30 rounded-lg border border-amber-200 dark:border-amber-800">
+                      <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200">
+                        <AlertTriangle className="h-4 w-4" />
+                        <span className="text-sm font-medium">Active Sprint Detected</span>
+                      </div>
+                      <div className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                        This sprint will be scheduled after your current sprint ends
+                      </div>
+                    </div>
+                  )}
+                  
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Duration:</span>
                     <span className="font-medium text-foreground">
@@ -340,9 +412,8 @@ export default function NewSprintPage() {
                     </div>
                   )}
                 </div>
-                
-                <ElevatrButton
-                  onClick={handleCreateSprint}
+                  <ElevatrButton
+                  onClick={handleCreateSprintClick}
                   disabled={!sprintTitle.trim() || loading}
                   variant="motivation"
                   className="w-full h-12 text-base font-medium"
@@ -361,6 +432,73 @@ export default function NewSprintPage() {
           </ElevatrCard>
         </div>
       </div>
+
+      {/* Active Sprint Warning Dialog */}
+      {showActiveSprintDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <ElevatrCard variant="glass" className="w-full max-w-md">
+            <div className="elevatr-card-header">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                  <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">Active Sprint Detected</h3>
+                  <p className="text-sm text-muted-foreground">You already have an active sprint running</p>
+                </div>
+              </div>
+            </div>
+            <div className="elevatr-card-content space-y-4">
+              {activeSprint && (
+                <div className="bg-muted/30 rounded-lg p-4 space-y-2">
+                  <div className="font-medium">{activeSprint.title}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {activeSprint.startDate} to {activeSprint.endDate}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {activeSprint.description}
+                  </div>
+                </div>
+              )}
+              
+              <p className="text-sm">
+                Would you like to schedule this new sprint to start right after your current sprint ends?
+              </p>
+                {activeSprint && (
+                <div className="text-sm bg-blue-50 dark:bg-blue-950/30 p-3 rounded-lg">
+                  <div className="font-medium text-blue-900 dark:text-blue-100">New sprint will start:</div>
+                  <div className="text-blue-700 dark:text-blue-300">
+                    {(() => {
+                      const nextDay = new Date(activeSprint.endDate);
+                      nextDay.setDate(nextDay.getDate() + 1);
+                      return nextDay.toLocaleDateString('en-US', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      });
+                    })()}
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="elevatr-card-footer flex gap-3 justify-end">
+              <ElevatrButton 
+                variant="secondary" 
+                onClick={() => setShowActiveSprintDialog(false)}
+              >
+                Cancel
+              </ElevatrButton>
+              <ElevatrButton 
+                variant="motivation" 
+                onClick={handleCreateSprintAfterCurrent}
+              >
+                Schedule Sprint
+              </ElevatrButton>
+            </div>
+          </ElevatrCard>
+        </div>
+      )}
     </div>
   );
 }

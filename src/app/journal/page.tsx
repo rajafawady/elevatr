@@ -11,9 +11,9 @@ import { CalendarDays, Plus, BookOpen, ArrowRight, Calendar } from 'lucide-react
 import { useSprintStore, useUserProgressStore } from '@/stores';
 import { format } from 'date-fns';
 import Link from 'next/link';
-
+import { JournalEntry } from '@/types';
 interface JournalEntryDisplay {
-  dayId: string;
+  dayId: number;
   date: Date;
   title: string;
   preview: string;
@@ -36,8 +36,8 @@ export default function JournalPage() {
       const existingEntry = userProgress.journalEntries.find(
         entry => entry.dayId === day.day
       );
-      
-      const dayNumber = parseInt(day.day);
+
+      const dayNumber = parseInt(day.day.replace('Day ', ''));
       // Safely parse the start date
       let entryDate: Date;
       try {
@@ -53,7 +53,7 @@ export default function JournalPage() {
       }
       
       entries.push({
-        dayId: day.day,
+        dayId: dayNumber,
         date: entryDate,
         title: `Day ${day.day} Reflection`,
         preview: existingEntry?.content 

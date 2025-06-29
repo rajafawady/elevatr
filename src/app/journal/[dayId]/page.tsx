@@ -27,7 +27,7 @@ export default function JournalPage() {
   useEffect(() => {
     if (!loading && userProgress && dayId) {
       const existingEntry = userProgress.journalEntries.find(
-        entry => entry.dayId === dayId
+        entry => entry.dayId === `Day ${dayId}`
       );
       
       if (existingEntry) {
@@ -52,8 +52,8 @@ export default function JournalPage() {
     try {
       setSaving(true);
       setSaveError(null);
-      
-      await updateJournalOptimistic(user.uid, activeSprint.id, dayId as string, content);
+
+      await updateJournalOptimistic(user.uid, activeSprint.id, `Day ${dayId}`, content);
       setLastSaved(new Date());
       setHasUnsavedChanges(false);
     } catch (error) {

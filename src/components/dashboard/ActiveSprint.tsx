@@ -5,6 +5,7 @@ import { Sprint, UserProgress } from '@/types';
 import { Calendar, CheckCircle, Clock, Play } from 'lucide-react';
 import { calculateProgress, getDaysRemaining } from '@/lib/utils';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface ActiveSprintProps {
   sprint: Sprint | null;
@@ -12,6 +13,7 @@ interface ActiveSprintProps {
 }
 
 export function ActiveSprint({ sprint, userProgress }: ActiveSprintProps) {
+  const router = useRouter();
   if (!sprint) {
     return (
       <ElevatrCard variant="glass" hover>
@@ -22,7 +24,7 @@ export function ActiveSprint({ sprint, userProgress }: ActiveSprintProps) {
             description="Start a new sprint to begin tracking your progress and achieving your career goals."
             action={{
               label: "Start New Sprint",
-              onClick: () => window.location.href = '/sprint/new',
+              onClick: () => router.push('/sprint/new'),
               variant: "primary"
             }}
           />

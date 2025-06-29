@@ -109,7 +109,7 @@ export const calculateProgress = (
     completedTasks = userProgress.taskStatuses.filter((ts: any) => ts.completed).length;
   }
   
-  const percentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+  const percentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 1000) / 10 : 0;
   
   return { completedTasks, totalTasks, percentage };
 };

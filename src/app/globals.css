@@ -1691,3 +1691,40 @@ body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
+
+/* Dialog positioning utilities for sidebar layout */
+.dialog-container-with-sidebar {
+  /* Account for sidebar on desktop, but not on mobile */
+  padding-left: 0;
+  padding-right: 0;
+}
+
+@media (min-width: 1024px) {
+  .dialog-container-with-sidebar {
+    /* Adjust for sidebar width on larger screens */
+    padding-left: 280px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .dialog-container-with-sidebar {
+    /* Adjust for wider sidebar on extra large screens */
+    padding-left: 320px;
+  }
+}
+
+/* Dialog content optimization for mobile */
+@media (max-width: 768px) {
+  .dialog-content-mobile {
+    max-height: 85vh;
+    padding: 1rem;
+  }
+  
+  .dialog-content-mobile .space-y-4 > * + * {
+    margin-top: 0.75rem;
+  }
+  
+  .dialog-content-mobile .space-y-6 > * + * {
+    margin-top: 1rem;
+  }
+}

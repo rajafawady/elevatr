@@ -1,75 +1,112 @@
 # Elevatr Career Success Tracker
 
-A comprehensive Next.js application for tracking career growth through structured 15-day and 30-day sprints. Build better habits, achieve your career goals, and track your progress with data-driven insights.
+A comprehensive Next.js PWA for tracking career growth through structured 15-day and 30-day sprints. Build better habits, achieve your career goals, and track your progress with data-driven insights, intelligent features, and a beautiful, modern UI.
 
 ![Elevatr Career Success Tracker](https://via.placeholder.com/800x400/4F46E5/FFFFFF?text=Elevatr+Career+Success+Tracker)
 
 ## ✨ Features
 
-### 🎯 Sprint Management
-- **15-day and 30-day career sprints** with structured daily tasks
-- **Core tasks** for skill development and career advancement
-- **Special tasks** for additional growth opportunities
-- **Sprint templates** for common career goals
-- **Progress tracking** and completion analytics
+### 🤖 Intelligent Features
+- **Optimistic UI**: Instant feedback for all actions, with background sync and rollback on errors
+- **Intelligent Caching**: Dual-layer (memory + localStorage) cache, auto-refresh, and manual invalidation
+- **Navigation Preloading**: Aggressive and predictive route preloading based on user behavior and idle time
+- **Persistent Navigation State**: Remembers navigation and restores state across sessions and devices
+- **Smart Notifications**: Context-aware reminders, milestone alerts, and achievement encouragement
+- **Sync Progress Indicator**: Real-time sync status, error handling, and retry logic
+- **Error Handling System**: Automatic retry, exponential backoff, and user-friendly error messages
+- **Background Synchronization**: All changes sync to Firebase in the background, with offline support
+- **Auto-Save**: Journal and task data are auto-saved with visual feedback and error recovery
+- **Performance Monitoring**: Real-time metrics, cache hit rates, and sync status indicators
+- **Adaptive UI**: Responsive design, touch targets, and reduced effects for mobile/performance
+- **Session-Aware PWA**: Install prompts, app shortcuts, and offline-first experience
+- **Data Migration**: Seamless upgrades with no data loss, local/cloud sync transitions
+- **Future-Ready**: Modular for AI-powered suggestions, analytics, and integrations
 
-### 📊 Progress Analytics
-- **Daily activity visualization** with interactive charts
-- **Completion rate tracking** across all sprints
-- **Streak tracking** to maintain momentum
-- **Performance insights** and trends analysis
-- **Goal achievement metrics**
+### 🚀 Core Features
+- **Sprint Management**: Create, view, edit, and delete 15/30-day sprints
+- **Task Management**: Priority-based, category-filtered, with instant optimistic updates
+- **Daily Journaling**: Rich text, sprint-linked, with auto-save and reflection prompts
+- **Progress Analytics**: Streaks, completion rates, visual charts, and goal metrics
+- **Calendar View**: Visualize sprints, tasks, and milestones
+- **User Profiles**: Firebase Auth, profile customization, settings, and theme
+- **Smart Notifications**: Task reminders, milestone alerts, and achievement celebrations
+- **PWA**: Offline support, install prompts, app shortcuts, persistent navigation state
+- **Optimistic UI**: Instant feedback, background sync, error rollback
+- **Intelligent Caching**: Local cache, auto-refresh, manual invalidation
+- **Modern UI/UX**: 100% theme coverage (glassmorphism, gradients, animations)
+- **Accessibility**: High contrast, keyboard navigation, responsive design
+- **Robust Error Handling**: Comprehensive error boundaries and user feedback
+- **Type Safety**: Full TypeScript, strict mode
+- **Performance**: Fast navigation, preloading, efficient data fetching
+- **Sync Progress Indicator**: Real-time sync status, error handling, and retry logic
+- **Enhanced Navigation**: Preloading, persistent state, route caching, FastLink, NavigationProgress
+- **Performance Monitoring**: OptimisticStateIndicator, PerformanceIndicator, cache hit rates
+- **Comprehensive API Layer**: Sprint, Task, Journal, Progress, Template APIs
+- **Modular State Management**: Zustand stores for sprints, tasks, progress, and app state
+- **Error Handling System**: ErrorProvider, ErrorNotification, useErrorHandler hook
+- **Settings Page Enhancements**: Local/cloud storage info, sync upgrade prompts
+- **Mobile-First Design**: Touch targets, hamburger menu, mobile performance optimizations
+- **Testing & Validation**: Type checks, linting, manual QA, error prevention
 
-### ✅ Task Management
-- **Priority-based task organization** (High, Medium, Low)
-- **Category-based filtering** for better organization
-- **Due date management** with deadline tracking
-- **Task completion tracking** with timestamps
-- **Status management** (Active, Completed, Blocked)
+### 🗂️ Main Application Pages
+- **🏠 Dashboard**: Overview, quick actions, stats, and recent activity
+- **🏃‍♂️ Sprint Management**: List, create, and manage sprints
+- **📋 Sprint Details**: View and update individual sprints
+- **✅ Tasks**: Manage all tasks, filter, and update instantly
+- **📖 Journal**: Daily entries, progress reflection, and insights
+- **📅 Calendar**: Timeline of sprints and tasks
+- **📊 Progress**: Analytics, streaks, and performance trends
+- **⚙️ Settings**: User preferences, theme, and notifications
+- **📤 Upload**: Data import/export (NEW)
 
-### 📝 Daily Journal
-- **Reflection prompts** for continuous improvement
-- **Day-specific entries** linked to sprint progress
-- **Progress documentation** and insights capture
-- **Achievement celebration** and learning capture
+### 🎨 UI & Theme System
+- **Glassmorphism**: Translucent cards, backdrop blur, and gradients
+- **Consistent Design**: Unified color palette, spacing, and typography
+- **Smooth Animations**: Staggered entrances, hover/focus effects
+- **Responsive**: Mobile, tablet, and desktop optimized
+- **Accessible**: Proper contrast, focus indicators, and ARIA support
+- **Component Library**: ElevatrCard, ElevatrButton, ElevatrBadge, ElevatrSprintCard, ElevatrJournalCard, ElevatrNotification, SyncIndicator, ErrorNotification, FastLink, NavigationProgress, PWAInstallPrompt, LoadingSpinner, Progress, PerformanceIndicator, OptimisticStateIndicator
 
-### 🗓️ Calendar Integration
-- **Visual sprint timeline** with monthly/weekly views
-- **Task deadline visualization**
-- **Sprint milestone tracking**
-- **Progress heat map** for daily activity
+### ⚡ State Management & Performance
+- **Optimistic Updates**: UI updates before server confirmation
+- **Background Sync**: All changes sync to Firebase in background
+- **Intelligent Caching**: Local storage, auto-refresh, and manual invalidation
+- **Persistent Navigation**: State saved across sessions
+- **Preloading**: Fast route changes and app-like experience
+- **Route Caching**: useNavigationCache hook, dual-layer cache, expiration
+- **Performance Monitoring**: Real-time metrics, cache hits, sync status
 
-### 👤 User Management
-- **Firebase Authentication** with email/password
-- **Profile customization** with display name and preferences
-- **Settings management** for notifications and themes
-- **Dark/Light theme** support with system preference detection
+### 🛡️ Security & Reliability
+- **Comprehensive Error Handling**: All Firebase operations covered
+- **Type Safety**: Strict TypeScript everywhere
+- **Testing**: Linting, type checks, and manual QA
+- **Input Validation**: Consistent validation patterns
+- **Rollback Mechanisms**: For failed operations
 
-### 🔔 Smart Notifications
-- **Task reminders** with customizable timing
-- **Sprint milestone notifications**
-- **Achievement celebrations**
-- **Progress insights** and encouragement
+### 🔧 Advanced & Optional Features
+- **Local Storage Service**: For unauthenticated users
+- **Data Sync Service**: Seamless upgrade to cloud sync
+- **Enhanced AuthContext**: Optional authentication flows
+- **Manual/Auto Save**: For journal and tasks
+- **Migration Notes**: No data loss on upgrades
+- **Future-Ready**: Modular for AI, team, and integration features
 
 ## 🛠️ Tech Stack
 
 ### Frontend
-- **Next.js 15** - React framework with App Router
-- **TypeScript** - Type-safe development
-- **Tailwind CSS** - Utility-first styling
-- **Lucide React** - Beautiful icons
-- **date-fns** - Date manipulation and formatting
+- **Next.js 15** (App Router)
+- **TypeScript**
+- **Tailwind CSS**
+- **Custom UI Component Library**
+- **Lucide React** (icons)
+- **date-fns** (date utilities)
 
 ### Backend & Database
-- **Firebase** - Backend-as-a-Service
-  - Authentication
-  - Firestore Database
-  - Cloud Storage (for future features)
+- **Firebase**: Auth, Firestore, Storage
+- **Vercel**: Hosting
 
-### Development Tools
-- **ESLint** - Code linting
-- **Prettier** - Code formatting
-- **Turbopack** - Fast bundler for development
+### Dev Tools
+- **ESLint**, **Prettier**, **Turbopack**
 
 ## 🚀 Getting Started
 

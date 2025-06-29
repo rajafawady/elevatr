@@ -183,40 +183,20 @@ export function Header() {
                 </h1>
               </div>
             </div>
-          </div>{/* Center Section: Search Bar (Desktop) */}
-          <div className="hidden md:flex flex-1 max-w-lg mx-8">
-            <div className="relative w-full group">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors duration-200" />
-              <input
-                type="search"
-                placeholder="Search sprints, tasks, or journal entries..."                className="w-full pl-10 pr-4 py-2.5 bg-white/50 dark:bg-muted/30 border border-border/30 dark:border-border/50 rounded-xl text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/60 focus:bg-white dark:focus:bg-muted/40 transition-all duration-200 shadow-sm hover:shadow-md"
-              />
-            </div>
-          </div>          {/* Right Section: Actions */}
-          <div className="flex items-center gap-2 shrink-0">            {/* Sync Progress Indicator */}
+          </div>
+         
+          
+          {/* Right Section: Actions */}
+          <div className="flex items-center gap-2 shrink-0">            
+            
+            
+            {/* Sync Progress Indicator */}
             <div className="hidden sm:block">
               <HeaderSyncIndicator />
             </div>
             
-            {/* Search Button - Mobile only */}            <ElevatrButton 
-              variant="secondary" 
-              size="sm" 
-              className="md:hidden p-2 transition-colors duration-200 hover:bg-accent/10 shrink-0"
-              aria-label="Search"
-            >
-              <Search className="h-5 w-5" />
-            </ElevatrButton>{/* Notifications */}
-            <div className="relative hidden sm:block">              <ElevatrButton 
-                variant="secondary" 
-                size="sm" 
-                className="relative p-2 transition-colors duration-200 hover:bg-accent/10 group"
-              >
-                <Bell className="h-5 w-5 transition-colors group-hover:text-primary" />
-                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-gradient-to-r from-red-500 to-red-600 text-[10px] text-white flex items-center justify-center font-bold shadow-lg ring-2 ring-background">
-                  3
-                </span>
-              </ElevatrButton>
-            </div>
+            
+
 
             {/* Theme Toggle */}
             <div className="relative">              <ElevatrButton
@@ -318,7 +298,7 @@ export function Header() {
                     onClick={() => setShowUserMenu(false)}
                   />                  <ElevatrCard 
                     variant="glass" 
-                    className="absolute right-0 top-full mt-2 w-64 z-50 shadow-xl border border-border/10 elevatr-animate-fade-in bg-white/95 dark:bg-background/95 backdrop-blur-xl"
+                    className="absolute right-0 top-full mt-2 w-64 z-50 shadow-xl border border-border/10 elevatr-animate-fade-in bg-white/50 dark:bg-background/80 backdrop-blur-xl"
                   >
                     <div className="p-4">
                       {/* User Info Header */}
@@ -391,22 +371,25 @@ export function Header() {
                               Sign In to Sync
                             </button>
                             <div className="text-xs text-center text-muted-foreground bg-blue-50 dark:bg-blue-950/20 p-2 rounded-lg border border-blue-200 dark:border-blue-800/30">
-                              <span className="font-medium text-blue-600 dark:text-blue-400">💾 Local Mode:</span> Data stored only on this device
+                              <span className="font-medium text-blue-600 dark:text-blue-400">Local Mode:</span> Data stored only on this device
                             </div>
                           </div>
                         )}
                         
                         {!isGuest && !isLocalUser && (
                           <div className="text-xs text-center text-muted-foreground bg-green-50 dark:bg-green-950/20 p-2 rounded-lg border border-green-200 dark:border-green-800/30">
-                            <span className="font-medium text-green-600 dark:text-green-400">☁️ Synced:</span> Data backed up to cloud
+                            <span className="font-medium text-green-600 dark:text-green-400">Synced:</span> Data backed up to cloud
                           </div>
                         )}
                         
                         {/* Settings */}
-                        <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/30 transition-all duration-200 hover:scale-[1.02] group">
+                        <button onClick={() => router.push('/settings')} className="w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/30 transition-all duration-200 hover:scale-[1.02] group">
                           <Settings className="h-4 w-4 transition-transform group-hover:rotate-45" />
                           Settings
-                        </button>                        {/* Sign Out / Clear Data */}
+                        </button>                        
+                        
+                        
+                        {/* Sign Out / Clear Data */}
                         <button 
                           onClick={async () => {
                             setShowUserMenu(false);

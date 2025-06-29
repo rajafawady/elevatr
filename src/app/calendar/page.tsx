@@ -5,10 +5,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ElevatrButton } from '@/components/ui/ElevatrButton';
 import { ElevatrCard } from '@/components/ui/ElevatrCard';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { getActiveSprint, getUserProgress } from '@/services/firebase';
-import { Sprint, UserProgress } from '@/types';
-import { Calendar, ChevronLeft, ChevronRight, CheckCircle2, Circle, BookOpen } from 'lucide-react';
+import { DayDetailsDialog } from '@/components/ui/DayDetailsDialog';
+import { CalendarDay } from '@/components/ui/CalendarDay';
+import { useSprintStore } from '@/stores/sprintStore';
+import { Sprint } from '@/types';
+import { Calendar, ChevronLeft, ChevronRight, CheckCircle2, BookOpen } from 'lucide-react';
 import Link from 'next/link';
+import { useUserProgressStore } from '@/stores/userProgressStore';
 
 interface CalendarDay {
   day: number;
@@ -22,33 +25,34 @@ interface CalendarDay {
 
 export default function CalendarPage() {
   const { user } = useAuth();
-  const [activeSprint, setActiveSprint] = useState<Sprint | null>(null);
-  const [userProgress, setUserProgress] = useState<UserProgress | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [calendarDays, setCalendarDays] = useState<CalendarDay[]>([]);
+  const [selectedDay, setSelectedDay] = useState<{ sprintDay: string; date: Date } | null>(null);
+
+  // Use global sprint and user progress stores
+  const activeSprint = useSprintStore(state => state.activeSprint);
+  const loadActiveSprint = useSprintStore(state => state.loadActiveSprint);
+  const loadUserProgress = useUserProgressStore(state => state.loadUserProgress);
+  const userProgress = useUserProgressStore(state => state.userProgress);
 
   useEffect(() => {
     const loadData = async () => {
       if (!user) return;
-
       try {
         setLoading(true);
-        const [sprint, progress] = await Promise.all([
-          getActiveSprint(user.uid),
-          getActiveSprint(user.uid).then(s => s ? getUserProgress(user.uid, s.id) : null),
-        ]);
-
-        setActiveSprint(sprint);
-        setUserProgress(progress);
+        await loadActiveSprint(user.uid);
+        if (activeSprint) {
+          await loadUserProgress(user.uid, activeSprint.id);
+        }
       } catch (error) {
         console.error('Error loading calendar data:', error);
       } finally {
         setLoading(false);
       }
     };
-
-    loadData();  }, [user]);
+    loadData();
+  }, [user, loadActiveSprint, loadUserProgress]);
 
   const generateCalendarDays = useCallback(() => {
     const year = currentDate.getFullYear();
@@ -140,9 +144,24 @@ export default function CalendarPage() {
 
   const hasJournalEntry = (sprintDay: string): boolean => {
     if (!userProgress) return false;
-    
-    return userProgress.journalEntries.some(entry => entry.dayId === sprintDay);
+
+    return userProgress.journalEntries.some(entry => entry.dayId === `Day ${sprintDay}`);
   };
+  const handlePrevMonth = useCallback(() => {
+    setCurrentDate(prev => {
+      const newDate = new Date(prev);
+      newDate.setMonth(prev.getMonth() - 1);
+      return newDate;
+    });
+  }, []);
+
+  const handleNextMonth = useCallback(() => {
+    setCurrentDate(prev => {
+      const newDate = new Date(prev);
+      newDate.setMonth(prev.getMonth() + 1);
+      return newDate;
+    });
+  }, []);
 
   const navigateMonth = (direction: 'prev' | 'next') => {
     setCurrentDate(prev => {
@@ -154,6 +173,31 @@ export default function CalendarPage() {
       }
       return newDate;
     });
+  };  const handleDayClick = useCallback((sprintDay: string, day: number) => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const clickedDate = new Date(year, month, day);
+
+    const newSelectedDay = {
+      sprintDay,
+      date: clickedDate
+    };
+    setSelectedDay(newSelectedDay);
+    console.log('Day clicked:', newSelectedDay);
+    console.log('user progress:', userProgress);
+  }, [currentDate]);
+
+  const handleDialogUpdate = async () => {
+    // Refresh the data when dialog updates
+    if (!user) return;
+    try {
+      await loadActiveSprint(user.uid);
+      if (activeSprint) {
+        await loadUserProgress(user.uid, activeSprint.id);
+      }
+    } catch (error) {
+      console.error('Error refreshing calendar data:', error);
+    }
   };
 
   const monthNames = [
@@ -216,19 +260,18 @@ export default function CalendarPage() {
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">
                 {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-              </h2>
-              <div className="flex items-center gap-2">
+              </h2>              <div className="flex items-center gap-2">
                 <ElevatrButton
                   variant="secondary"
                   size="sm"
-                  onClick={() => navigateMonth('prev')}
+                  onClick={handlePrevMonth}
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </ElevatrButton>
                 <ElevatrButton
                   variant="secondary"
                   size="sm"
-                  onClick={() => navigateMonth('next')}
+                  onClick={handleNextMonth}
                 >
                   <ChevronRight className="h-4 w-4" />
                 </ElevatrButton>
@@ -242,72 +285,26 @@ export default function CalendarPage() {
                 <div key={day} className="text-center p-2 text-sm font-medium text-muted-foreground">
                   {day}
                 </div>
-              ))}
-              
-              {/* Calendar Days */}
+              ))}              {/* Calendar Days */}
               {calendarDays.map((calendarDay, index) => (
-                <div
+                <CalendarDay
                   key={index}
-                  className={`
-                    aspect-square p-1 text-center relative border rounded-md transition-all duration-200
-                    ${calendarDay.isCurrentMonth 
-                      ? 'bg-background hover:bg-primary/5' 
-                      : 'bg-muted/50 text-muted-foreground'
-                    }
-                    ${calendarDay.sprintDay 
-                      ? 'ring-2 ring-primary/20' 
-                      : ''
-                    }
-                    ${calendarDay.isCompleted 
-                      ? 'bg-success/10 border-success/20' 
-                      : ''
-                    }
-                  `}
-                >
-                  <div className="text-sm font-medium">
-                    {calendarDay.day}
-                  </div>
-                  
-                  {calendarDay.sprintDay && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center pt-5">
-                      <div className="text-xs text-primary font-medium">
-                        Day {calendarDay.sprintDay}
-                      </div>
-                      
-                      {calendarDay.totalTasks > 0 && (
-                        <div className="flex items-center gap-1 mt-1">
-                          <div className="text-xs">
-                            {calendarDay.tasksCompleted}/{calendarDay.totalTasks}
-                          </div>
-                          {calendarDay.isCompleted ? (
-                            <CheckCircle2 className="h-3 w-3 text-success" />
-                          ) : (
-                            <Circle className="h-3 w-3" />
-                          )}
-                        </div>
-                      )}
-                      
-                      {calendarDay.hasJournal && (
-                        <BookOpen className="h-3 w-3 text-accent mt-1" />
-                      )}
-                      
-                      {calendarDay.isCurrentMonth && calendarDay.sprintDay && (
-                        <Link 
-                          href={`/sprint/${activeSprint.id}`}
-                          className="absolute inset-0 z-10"
-                        />
-                      )}
-                    </div>
-                  )}
-                </div>
+                  day={calendarDay.day}
+                  isCurrentMonth={calendarDay.isCurrentMonth}
+                  sprintDay={calendarDay.sprintDay}
+                  isCompleted={calendarDay.isCompleted}
+                  tasksCompleted={calendarDay.tasksCompleted}
+                  totalTasks={calendarDay.totalTasks}
+                  hasJournal={calendarDay.hasJournal}
+                  onDayClick={handleDayClick}
+                />
               ))}
             </div>
-            
-            {/* Legend */}
+              {/* Legend */}
             <div className="flex items-center gap-6 mt-6 pt-4 border-t text-sm">
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 border-2 border-primary/20 rounded"></div>
-                <span>Sprint Day</span>
+                <span>Sprint Day (Click to open)</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-success" />
@@ -317,9 +314,21 @@ export default function CalendarPage() {
                 <BookOpen className="h-4 w-4 text-accent" />
                 <span>Journal Entry</span>
               </div>
-            </div>
-          </div>
+            </div></div>
         </ElevatrCard>
+      )}
+
+      {/* Day Details Dialog */}
+      {selectedDay && user && (
+        <DayDetailsDialog
+          isOpen={!!selectedDay}
+          onClose={() => setSelectedDay(null)}
+          sprint={activeSprint}
+          userProgress={userProgress}
+          sprintDay={selectedDay.sprintDay}
+          date={selectedDay.date}
+          userId={user.uid}
+        />
       )}
     </div>
   );

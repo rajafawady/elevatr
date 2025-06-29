@@ -156,12 +156,28 @@ export const useSprintStore = create<SprintState>()(
               newSprint = { ...sprintData, id: sprintId };
             }
             
-            set(state => ({ 
-              sprints: [...state.sprints, newSprint],
-              activeSprint: newSprint.status === 'active' ? newSprint : state.activeSprint,
-              loading: false,
-              error: null 
-            }));
+            set(state => {
+              let updatedSprints = [...state.sprints];
+              
+              // If the new sprint is active, mark previous active sprints as completed
+              if (newSprint.status === 'active') {
+                updatedSprints = updatedSprints.map(sprint => 
+                  sprint.status === 'active' 
+                    ? { ...sprint, status: 'completed' as const, updatedAt: new Date().toISOString() }
+                    : sprint
+                );
+              }
+              
+              // Add the new sprint
+              updatedSprints.push(newSprint);
+              
+              return {
+                sprints: updatedSprints,
+                activeSprint: newSprint.status === 'active' ? newSprint : state.activeSprint,
+                loading: false,
+                error: null 
+              };
+            });
             
             return sprintId;
           } catch (error) {
@@ -172,7 +188,7 @@ export const useSprintStore = create<SprintState>()(
             });
             throw error;
           }
-        },        // Update sprint with optimistic updates
+        },// Update sprint with optimistic updates
         updateSprintOptimistic: async (sprintId: string, updates: Partial<Sprint>) => {
           const state = get();
           
