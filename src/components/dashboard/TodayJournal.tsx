@@ -151,7 +151,7 @@ export function TodayJournal() {
                 </div>
               )}
             </div>
-            <Link href={`/journal/${currentDay}`}>
+            <Link href={`/journal/${currentDay.split(' ')[1]}`}>
               <ElevatrButton variant="accent" size="lg" className="w-full group">
                 <BookOpen className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
                 Continue Writing
